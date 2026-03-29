@@ -150,6 +150,7 @@ for fixture in "${FIXTURES[@]}"; do
       2>/dev/null
 
     # Memory (single run)
+    # shellcheck disable=SC2086
     mem=$(cd "$fixture_path" && measure_memory ferrflow $cmd)
     # Stash memory in a sidecar file
     echo "$mem" > "$RAW_DIR/${fixture}-ferrflow-${cmd_name}.mem"
@@ -203,6 +204,7 @@ if ! $SKIP_COMPETITORS && command_exists npx; then
         "cd $tmp_dir && $tool_cmd 2>/dev/null" \
         2>/dev/null || true
 
+      # shellcheck disable=SC2086
       mem=$(cd "$tmp_dir" && measure_memory $tool_cmd 2>/dev/null || echo "N/A")
       echo "$mem" > "$RAW_DIR/${fixture}-${tool}-check.mem"
 
