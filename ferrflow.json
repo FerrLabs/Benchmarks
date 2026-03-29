@@ -1,0 +1,10 @@
+{
+  "package": [
+    {
+      "name": "benchmarks",
+      "path": ".",
+      "changelog": "CHANGELOG.md",
+      "versionedFiles": []
+    }
+  ]
+}
