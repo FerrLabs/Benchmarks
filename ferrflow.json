@@ -1,4 +1,8 @@
 {
+  "$schema": "https://ferrflow.com/schema/ferrflow.json",
+  "workspace": {
+    "tagTemplate": "v{version}"
+  },
   "package": [
     {
       "name": "benchmarks",
