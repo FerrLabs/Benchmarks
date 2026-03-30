@@ -5,6 +5,12 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (no tags, no release)'
+        type: boolean
+        default: false
 
 jobs:
   lint:
@@ -14,3 +20,32 @@ jobs:
       - uses: actions/checkout@v6
       - name: ShellCheck
         run: shellcheck scripts/*.sh
+
+  release:
+    name: Release
+    needs: lint
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.FERRFLOW_TOKEN }}
+      - name: Configure git
+        run: git remote set-url origin https://x-access-token:${{ secrets.FERRFLOW_TOKEN }}@github.com/${{ github.repository }}
+      - uses: FerrFlow-Org/ferrflow@v2
+        with:
+          dry_run: ${{ inputs.dry_run }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.FERRFLOW_TOKEN }}
+      - name: Update major version tag
+        if: inputs.dry_run != true
+        run: |
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
+          if [ -n "$TAG" ]; then
+            MAJOR="v$(echo "${TAG#v}" | cut -d. -f1)"
+            git tag -f "$MAJOR"
+            git push origin "refs/tags/$MAJOR" --force
+          fi
