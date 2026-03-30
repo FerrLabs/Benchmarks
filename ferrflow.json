@@ -8,7 +8,9 @@
       "name": "benchmarks",
       "path": ".",
       "changelog": "CHANGELOG.md",
-      "versionedFiles": []
+      "versionedFiles": [
+        { "path": "VERSION", "format": "txt" }
+      ]
     }
   ]
 }
