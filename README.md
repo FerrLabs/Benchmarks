@@ -1,5 +1,9 @@
 # FerrFlow Benchmarks
 
+[![CI](https://github.com/FerrFlow-Org/Benchmarks/actions/workflows/ci.yml/badge.svg)](https://github.com/FerrFlow-Org/Benchmarks/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/FerrFlow-Org/Benchmarks/actions/workflows/codeql.yml/badge.svg)](https://github.com/FerrFlow-Org/Benchmarks/actions/workflows/codeql.yml)
+[![License](https://img.shields.io/github/license/FerrFlow-Org/Benchmarks)](LICENSE)
+
 Reusable GitHub Action for running FerrFlow benchmarks and detecting performance regressions.
 
 ## Usage
