@@ -34,6 +34,12 @@ outputs:
 runs:
   using: 'composite'
   steps:
+    - name: Configure git identity
+      shell: bash
+      run: |
+        git config user.name "FerrFlow"
+        git config user.email "contact@ferrflow.com"
+
     # ------------------------------------------------------------------
     # Micro benchmarks (criterion)
     # ------------------------------------------------------------------
