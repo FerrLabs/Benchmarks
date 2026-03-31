@@ -18,6 +18,7 @@ fi
 
 if [[ ! -f "$BASELINE" ]]; then
   echo "No baseline found at $BASELINE -- skipping regression check (first run?)" >&2
+  echo "status=no-baseline"
   exit 0
 fi
 
