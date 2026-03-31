@@ -20,7 +20,9 @@ Reusable GitHub Action for running FerrFlow benchmarks and detecting performance
 |-------|-------------|---------|
 | `type` | Benchmark type: `micro`, `full`, or `all` | `all` |
 | `skip-competitors` | Skip competitor benchmarks in full mode | `false` |
-| `alert-threshold` | Regression alert threshold (e.g. `120%`) | `120%` |
+| `alert-threshold` | Regression alert threshold for micro benchmarks (e.g. `120%`) | `120%` |
+| `full-regression-threshold` | Relative threshold for full benchmark regressions (e.g. `125%`) | `125%` |
+| `binary-size-threshold` | Binary size growth threshold (e.g. `120%`) | `120%` |
 | `comment-on-pr` | Post benchmark results as PR comment | `true` |
 | `ferrflow-token` | GitHub token for PR comments and artifact access | required |
 
@@ -46,7 +48,7 @@ Runs end-to-end benchmarks with [hyperfine](https://github.com/sharkdp/hyperfine
 
 - Generates fixtures using `cargo run --release --bin generate-fixtures`
 - Measures execution time, memory usage, and binary size
-- Compares against stored baseline and detects regressions (25% threshold)
+- Compares against stored baseline and detects regressions (configurable threshold, default 25%)
 
 ## Requirements
 

@@ -40,8 +40,19 @@ require_cmd jq
 # Configuration
 # ---------------------------------------------------------------------------
 
-RELATIVE_THRESHOLD=0.25  # 25%
-BINARY_SIZE_THRESHOLD=0.20  # 20%
+# Parse percentage inputs (e.g. "125%" -> 0.25, "120%" -> 0.20)
+_parse_pct() {
+  local raw="$1" default="$2"
+  if [[ -z "$raw" ]]; then
+    echo "$default"
+    return
+  fi
+  raw="${raw%\%}"
+  awk "BEGIN {printf \"%.4f\", ($raw / 100) - 1}" 2>/dev/null || echo "$default"
+}
+
+RELATIVE_THRESHOLD=$(_parse_pct "${FULL_REGRESSION_THRESHOLD:-}" "0.25")
+BINARY_SIZE_THRESHOLD=$(_parse_pct "${BINARY_SIZE_THRESHOLD:-}" "0.20")
 
 # Absolute thresholds (ms)
 declare -A ABS_THRESHOLDS=(
@@ -77,7 +88,8 @@ for key in $(jq -r '.benchmarks | keys[]' "$LATEST" | grep '^ferrflow|'); do
   fi
 
   if (( $(awk "BEGIN {print (($new_median - $old_median) / $old_median > $RELATIVE_THRESHOLD) ? 1 : 0}") )); then
-    echo "  FAIL $key: ${old_median}ms -> ${new_median}ms (${sign}${pct}%) -- exceeds ${RELATIVE_THRESHOLD}x threshold"
+    rel_pct=$(awk "BEGIN {printf \"%.0f\", $RELATIVE_THRESHOLD * 100}")
+    echo "  FAIL $key: ${old_median}ms -> ${new_median}ms (${sign}${pct}%) -- exceeds ${rel_pct}% threshold"
     FAILED=true
   else
     echo "  OK   $key: ${old_median}ms -> ${new_median}ms (${sign}${pct}%)"
@@ -110,7 +122,8 @@ old_size=$(jq -r '.ferrflow_binary_size_mb // empty' "$BASELINE" 2>/dev/null || 
 if [[ -n "$old_size" && "$old_size" != "null" && "$old_size" != "N/A" && "$new_size" != "N/A" ]]; then
   pct=$(awk "BEGIN {printf \"%.1f\", (($new_size - $old_size) / $old_size) * 100}")
   if (( $(awk "BEGIN {print (($new_size - $old_size) / $old_size > $BINARY_SIZE_THRESHOLD) ? 1 : 0}") )); then
-    echo "  FAIL binary size: ${old_size}MB -> ${new_size}MB (+${pct}%) -- exceeds 20% threshold"
+    threshold_pct=$(awk "BEGIN {printf \"%.0f\", $BINARY_SIZE_THRESHOLD * 100}")
+    echo "  FAIL binary size: ${old_size}MB -> ${new_size}MB (+${pct}%) -- exceeds ${threshold_pct}% threshold"
     FAILED=true
   else
     echo "  OK   binary size: ${old_size}MB -> ${new_size}MB (${pct}%)"
