@@ -137,7 +137,7 @@ runs:
         if [[ "${{ inputs.skip-competitors }}" == "true" ]]; then
           ARGS="$ARGS --skip-competitors"
         fi
-        bash ${{ github.action_path }}/scripts/run.sh $ARGS
+        bash ${{ github.action_path }}/scripts/run.sh $ARGS | tee benchmarks/results/summary.md
 
     - name: Download full baseline
       if: inputs.type == 'full' || inputs.type == 'all'
@@ -157,6 +157,42 @@ runs:
         else
           echo "regression=true" >> "$GITHUB_OUTPUT"
         fi
+
+    - name: Post full benchmark results as PR comment
+      if: (inputs.type == 'full' || inputs.type == 'all') && github.event_name == 'pull_request' && inputs.comment-on-pr == 'true'
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const fs = require('fs');
+          const summary = fs.readFileSync('benchmarks/results/summary.md', 'utf8').trim();
+          if (!summary) return;
+
+          const marker = '<!-- ferrflow-full-bench -->';
+          const body = `${marker}\n## Full Benchmark Results (hyperfine)\n\n${summary}`;
+
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+
+          const existing = comments.find(c => c.body.includes(marker));
+          if (existing) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: existing.id,
+              body,
+            });
+          } else {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+          }
 
     - name: Upload full baseline
       if: (inputs.type == 'full' || inputs.type == 'all') && github.event_name == 'push' && github.ref == 'refs/heads/main'
