@@ -8,7 +8,7 @@ Reusable GitHub Action for running FerrFlow benchmarks and detecting performance
 ## Usage
 
 ```yaml
-- uses: FerrFlow-Org/Benchmarks@v0
+- uses: FerrFlow-Org/Benchmarks@v2
   with:
     type: micro        # micro, full, or all
     ferrflow-token: ${{ secrets.FERRFLOW_TOKEN }}
