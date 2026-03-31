@@ -4,6 +4,18 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.1.0] - 2026-03-31
+
+### Features
+
+- feat: expose full benchmark regression thresholds as action inputs (#32)
+- feat: expose benchmark summary as action output for release notes (#34)
+- feat(ci): include benchmark results in releases and step summary (#31)
+
+### Bug Fixes
+
+- fix(ci): repair YAML syntax in release benchmark step (#35)
+
 ## [2.0.2] - 2026-03-31
 
 ### Bug Fixes
