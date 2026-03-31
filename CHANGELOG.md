@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.0.1] - 2026-03-31
+
+### Bug Fixes
+
+- fix: surface missing baseline in PR comment (#19)
+
 ## [2.0.0] - 2026-03-31
 
 ### Breaking Changes
