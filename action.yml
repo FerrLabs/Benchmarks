@@ -152,10 +152,20 @@ runs:
       id: compare
       shell: bash
       run: |
-        if bash ${{ github.action_path }}/scripts/compare.sh benchmarks/results/baseline.json benchmarks/results/latest.json; then
+        set +e
+        output=$(bash ${{ github.action_path }}/scripts/compare.sh benchmarks/results/baseline.json benchmarks/results/latest.json 2>&1)
+        exit_code=$?
+        set -e
+        echo "$output"
+        if echo "$output" | grep -q "status=no-baseline"; then
           echo "regression=false" >> "$GITHUB_OUTPUT"
+          echo "baseline=missing" >> "$GITHUB_OUTPUT"
+        elif [[ $exit_code -eq 0 ]]; then
+          echo "regression=false" >> "$GITHUB_OUTPUT"
+          echo "baseline=found" >> "$GITHUB_OUTPUT"
         else
           echo "regression=true" >> "$GITHUB_OUTPUT"
+          echo "baseline=found" >> "$GITHUB_OUTPUT"
         fi
 
     - name: Post full benchmark results as PR comment
@@ -168,8 +178,12 @@ runs:
           const summary = fs.readFileSync('benchmarks/results/summary.md', 'utf8').trim();
           if (!summary) return;
 
+          const baselineMissing = '${{ steps.compare.outputs.baseline }}' === 'missing';
           const marker = '<!-- ferrflow-full-bench -->';
-          const body = `${marker}\n## Full Benchmark Results (hyperfine)\n\n${summary}`;
+          let body = `${marker}\n## Full Benchmark Results (hyperfine)\n\n${summary}`;
+          if (baselineMissing) {
+            body += '\n\n> **Note:** No baseline found — regression comparison was skipped. A baseline will be saved when this is merged to main.';
+          }
 
           const { data: comments } = await github.rest.issues.listComments({
             owner: context.repo.owner,
