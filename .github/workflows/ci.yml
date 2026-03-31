@@ -126,8 +126,7 @@ jobs:
           TAG="${{ needs.release.outputs.tag }}"
           PERF=$(bash scripts/format-release.sh /tmp/bench-results/latest.json)
           CURRENT_BODY=$(gh release view "$TAG" --json body -q '.body' 2>/dev/null || echo "")
-          gh release edit "$TAG" --notes "${CURRENT_BODY}
-
-${PERF}"
+          printf -v NEW_BODY '%s\n\n%s' "$CURRENT_BODY" "$PERF"
+          gh release edit "$TAG" --notes "$NEW_BODY"
         env:
           GH_TOKEN: ${{ secrets.FERRFLOW_TOKEN }}
