@@ -28,6 +28,8 @@ jobs:
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     permissions:
       contents: write
+    outputs:
+      tag: ${{ steps.detect-tag.outputs.tag }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -35,6 +37,9 @@ jobs:
           token: ${{ secrets.FERRFLOW_TOKEN }}
       - name: Configure git
         run: git remote set-url origin https://x-access-token:${{ secrets.FERRFLOW_TOKEN }}@github.com/${{ github.repository }}
+      - name: Record previous tag
+        id: prev-tag
+        run: echo "tag=$(git describe --tags --abbrev=0 2>/dev/null || echo '')" >> "$GITHUB_OUTPUT"
       - uses: FerrFlow-Org/ferrflow@v2
         with:
           dry_run: ${{ inputs.dry_run }}
@@ -49,3 +54,80 @@ jobs:
             git tag -f "$MAJOR"
             git push origin "refs/tags/$MAJOR" --force
           fi
+      - name: Detect new tag
+        id: detect-tag
+        run: |
+          NEW_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo '')
+          PREV_TAG="${{ steps.prev-tag.outputs.tag }}"
+          if [[ -n "$NEW_TAG" && "$NEW_TAG" != "$PREV_TAG" ]]; then
+            echo "tag=$NEW_TAG" >> "$GITHUB_OUTPUT"
+          fi
+
+  benchmark:
+    name: Benchmark
+    needs: lint
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+        with:
+          repository: FerrFlow-Org/ferrflow
+          path: ferrflow-src
+          token: ${{ secrets.FERRFLOW_TOKEN }}
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ferrflow-src
+      - name: Install hyperfine and jq
+        run: |
+          cargo install hyperfine
+          sudo apt-get install -y jq
+      - name: Build ferrflow
+        run: cargo build --release
+        working-directory: ferrflow-src
+      - name: Add ferrflow to PATH
+        run: echo "${{ github.workspace }}/ferrflow-src/target/release" >> "$GITHUB_PATH"
+      - name: Generate fixtures
+        run: cargo run --release --bin generate-fixtures -- /tmp/bench-fixtures
+        working-directory: ferrflow-src
+      - name: Run benchmarks
+        run: |
+          bash scripts/run.sh \
+            --skip-competitors \
+            --fixtures-dir /tmp/bench-fixtures \
+            --results-dir /tmp/bench-results
+      - name: Step summary
+        run: bash scripts/format-release.sh /tmp/bench-results/latest.json >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload results
+        uses: actions/upload-artifact@v7
+        with:
+          name: benchmark-results
+          path: /tmp/bench-results/latest.json
+          retention-days: 90
+
+  update-release:
+    name: Update release with benchmarks
+    needs: [release, benchmark]
+    runs-on: ubuntu-latest
+    if: needs.release.outputs.tag != ''
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v8
+        with:
+          name: benchmark-results
+          path: /tmp/bench-results
+      - name: Install jq
+        run: sudo apt-get install -y jq
+      - name: Append benchmark results to release
+        run: |
+          TAG="${{ needs.release.outputs.tag }}"
+          PERF=$(bash scripts/format-release.sh /tmp/bench-results/latest.json)
+          CURRENT_BODY=$(gh release view "$TAG" --json body -q '.body' 2>/dev/null || echo "")
+          gh release edit "$TAG" --notes "${CURRENT_BODY}
+
+${PERF}"
+        env:
+          GH_TOKEN: ${{ secrets.FERRFLOW_TOKEN }}
