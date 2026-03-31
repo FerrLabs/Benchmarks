@@ -69,5 +69,65 @@ jq -r '
   echo "| ${fixture} | ${cmd} | ${median}ms${delta} | ${mem_display} |"
 done
 
+# ---------------------------------------------------------------------------
+# Competitor comparison (only when competitor data is present)
+# ---------------------------------------------------------------------------
+
+COMPETITOR_KEYS=$(jq -r '
+  .benchmarks | keys[] | select(startswith("ferrflow|") | not)
+' "$LATEST" 2>/dev/null || true)
+
+if [[ -n "$COMPETITOR_KEYS" ]]; then
+  # Collect fixtures that have both ferrflow and competitor data
+  COMP_FIXTURES=$(echo "$COMPETITOR_KEYS" | cut -d'|' -f2 | sort -u)
+
+  echo ""
+  echo "### vs. competitors"
+  echo ""
+  echo "| Fixture | Tool | Median | Memory |"
+  echo "|---------|------|--------|--------|"
+
+  echo "$COMP_FIXTURES" | while IFS= read -r fixture; do
+    # FerrFlow check for this fixture
+    ff_key="ferrflow|${fixture}|check"
+    ff_median=$(jq -r ".benchmarks[\"$ff_key\"].median_ms // empty" "$LATEST" 2>/dev/null || echo "")
+    ff_mem=$(jq -r ".benchmarks[\"$ff_key\"].memory_mb // empty" "$LATEST" 2>/dev/null || echo "")
+
+    if [[ -n "$ff_median" && "$ff_median" != "null" ]]; then
+      ff_median_fmt=$(echo "$ff_median" | awk '{printf "%.1f", $1}')
+      ff_mem_display="N/A"
+      if [[ -n "$ff_mem" && "$ff_mem" != "N/A" && "$ff_mem" != "null" ]]; then
+        ff_mem_display="${ff_mem} MB"
+      fi
+      echo "| ${fixture} | **ferrflow** | **${ff_median_fmt}ms** | **${ff_mem_display}** |"
+    fi
+
+    # Competitor entries for this fixture
+    echo "$COMPETITOR_KEYS" | grep "|${fixture}|" | sort | while IFS= read -r ckey; do
+      tool=$(echo "$ckey" | cut -d'|' -f1)
+      c_median=$(jq -r ".benchmarks[\"$ckey\"].median_ms // empty" "$LATEST" 2>/dev/null || echo "")
+      c_mem=$(jq -r ".benchmarks[\"$ckey\"].memory_mb // empty" "$LATEST" 2>/dev/null || echo "")
+
+      if [[ -z "$c_median" || "$c_median" == "null" || "$c_median" == "0" ]]; then
+        continue
+      fi
+
+      c_median_fmt=$(echo "$c_median" | awk '{printf "%.1f", $1}')
+      c_mem_display="N/A"
+      if [[ -n "$c_mem" && "$c_mem" != "N/A" && "$c_mem" != "null" ]]; then
+        c_mem_display="${c_mem} MB"
+      fi
+
+      # Compute slowdown factor vs ferrflow
+      slowdown=""
+      if [[ -n "$ff_median" && "$ff_median" != "null" ]]; then
+        slowdown=$(awk "BEGIN {x = $c_median / $ff_median; if (x >= 1.5) printf \" (%.0fx)\", x}")
+      fi
+
+      echo "| ${fixture} | ${tool} | ${c_median_fmt}ms${slowdown} | ${c_mem_display} |"
+    done
+  done
+fi
+
 echo ""
 echo "*Binary size: ${BINARY_SIZE} MB — ferrflow ${VERSION}*"
