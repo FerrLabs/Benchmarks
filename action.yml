@@ -30,6 +30,9 @@ outputs:
   regression-detected:
     description: 'Whether a regression was detected'
     value: ${{ steps.compare.outputs.regression }}
+  benchmark-summary:
+    description: 'Formatted benchmark summary (markdown) for release notes'
+    value: ${{ steps.release-summary.outputs.summary }}
 
 runs:
   using: 'composite'
@@ -215,4 +218,29 @@ runs:
         name: hyperfine-baseline
         path: benchmarks/results/latest.json
         retention-days: 90
+        overwrite: true
+
+    - name: Generate release summary
+      if: (inputs.type == 'full' || inputs.type == 'all') && github.event_name == 'push' && github.ref == 'refs/heads/main'
+      id: release-summary
+      shell: bash
+      run: |
+        ARGS="benchmarks/results/latest.json"
+        if [[ -f benchmarks/results/baseline.json ]]; then
+          ARGS="$ARGS --with-delta benchmarks/results/baseline.json"
+        fi
+        bash ${{ github.action_path }}/scripts/format-release.sh $ARGS > benchmarks/results/release-summary.md
+        {
+          echo "summary<<BENCH_EOF"
+          cat benchmarks/results/release-summary.md
+          echo "BENCH_EOF"
+        } >> "$GITHUB_OUTPUT"
+
+    - name: Upload release summary
+      if: (inputs.type == 'full' || inputs.type == 'all') && github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: actions/upload-artifact@v7
+      with:
+        name: benchmark-release-summary
+        path: benchmarks/results/release-summary.md
+        retention-days: 5
         overwrite: true

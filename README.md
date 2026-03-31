@@ -29,6 +29,7 @@ Reusable GitHub Action for running FerrFlow benchmarks and detecting performance
 | Output | Description |
 |--------|-------------|
 | `regression-detected` | `true` if a performance regression was detected |
+| `benchmark-summary` | Formatted benchmark summary (markdown) for release notes |
 
 ## Benchmark types
 
