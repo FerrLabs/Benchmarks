@@ -11,7 +11,7 @@ Reusable GitHub Action for running FerrFlow benchmarks and detecting performance
 - uses: FerrFlow-Org/Benchmarks@v0
   with:
     type: micro        # micro, full, or all
-    github-token: ${{ secrets.GITHUB_TOKEN }}
+    github-token: ${{ secrets.FERRFLOW_TOKEN }}
 ```
 
 ## Inputs
