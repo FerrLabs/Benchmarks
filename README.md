@@ -11,7 +11,7 @@ Reusable GitHub Action for running FerrFlow benchmarks and detecting performance
 - uses: FerrFlow-Org/Benchmarks@v0
   with:
     type: micro        # micro, full, or all
-    github-token: ${{ secrets.FERRFLOW_TOKEN }}
+    ferrflow-token: ${{ secrets.FERRFLOW_TOKEN }}
 ```
 
 ## Inputs
@@ -22,7 +22,7 @@ Reusable GitHub Action for running FerrFlow benchmarks and detecting performance
 | `skip-competitors` | Skip competitor benchmarks in full mode | `false` |
 | `alert-threshold` | Regression alert threshold (e.g. `120%`) | `120%` |
 | `comment-on-pr` | Post benchmark results as PR comment | `true` |
-| `github-token` | GitHub token for PR comments and artifact access | required |
+| `ferrflow-token` | GitHub token for PR comments and artifact access | required |
 
 ## Outputs
 
