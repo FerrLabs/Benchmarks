@@ -48,6 +48,76 @@ require_cmd() {
   fi
 }
 
+# Setup minimal config files so competitor tools can run meaningfully
+# on the generated fixtures. Without these, most tools exit immediately
+# with a config error — benchmarking that is useless.
+setup_competitor_config() {
+  local tool="$1"
+  local dir="$2"
+
+  case "$tool" in
+    semantic-release)
+      cat > "$dir/.releaserc.json" <<'CONF'
+{
+  "branches": ["main"],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator"
+  ]
+}
+CONF
+      git -C "$dir" remote get-url origin &>/dev/null || \
+        git -C "$dir" remote add origin "https://github.com/test/benchmark-fixture.git"
+      ;;
+    changesets)
+      mkdir -p "$dir/.changeset"
+      cat > "$dir/.changeset/config.json" <<'CONF'
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.1.1/schema.json",
+  "changelog": false,
+  "commit": false,
+  "access": "restricted",
+  "baseBranch": "main"
+}
+CONF
+      ;;
+    release-please)
+      # release-please requires GitHub API access to function.
+      # Config files alone are not sufficient — it needs --repo-url and --token.
+      # We still set up configs so validation can distinguish "missing config"
+      # from "no API access".
+      local pkg_config='{}'
+      local manifest='{}'
+      if [[ -f "$dir/.ferrflow" ]] && command_exists jq; then
+        pkg_config=$(jq '
+          [.package[] | {("\(.path)"): {"release-type": "node"}}]
+          | add // {}
+        ' "$dir/.ferrflow")
+        manifest=$(jq '
+          [.package[] | {("\(.path)"): "0.1.0"}]
+          | add // {}
+        ' "$dir/.ferrflow")
+      fi
+      echo "{\"packages\": $pkg_config}" > "$dir/release-please-config.json"
+      echo "$manifest" > "$dir/.release-please-manifest.json"
+      ;;
+  esac
+}
+
+# Run a command once and check it exits 0. Returns 1 if the tool
+# cannot run meaningfully on this fixture.
+validate_competitor() {
+  local tool="$1"
+  local cmd="$2"
+  local dir="$3"
+
+  if (cd "$dir" && eval "$cmd" >/dev/null 2>&1); then
+    return 0
+  fi
+  echo "    SKIP $tool: command failed validation — results would not be meaningful" >&2
+  return 1
+}
+
 # Measure peak RSS in MB (Linux only)
 measure_memory() {
   if [[ "$(uname)" == "Linux" ]]; then
@@ -196,13 +266,27 @@ if ! $SKIP_COMPETITORS && command_exists npx; then
       tmp_dir=$(mktemp -d)
       cp -a "$fixture_path/." "$tmp_dir/"
 
+      setup_competitor_config "$tool" "$tmp_dir"
+
+      if ! validate_competitor "$tool" "$tool_cmd" "$tmp_dir"; then
+        echo "N/A" > "$RAW_DIR/${fixture}-${tool}-check.mem"
+        rm -rf "$tmp_dir"
+        continue
+      fi
+
       hyperfine \
         --warmup 1 \
         --runs 3 \
         --export-json "$raw_file" \
         --shell=bash \
         "cd $tmp_dir && $tool_cmd 2>/dev/null" \
-        2>/dev/null || true
+        2>/dev/null
+
+      if [[ ! -s "$raw_file" ]]; then
+        echo "    WARN: $tool on $fixture produced no benchmark results" >&2
+        rm -rf "$tmp_dir"
+        continue
+      fi
 
       # shellcheck disable=SC2086
       mem=$(cd "$tmp_dir" && measure_memory $tool_cmd 2>/dev/null || echo "N/A")
