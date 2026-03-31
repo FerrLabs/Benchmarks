@@ -22,6 +22,14 @@ inputs:
     description: 'Post benchmark results as PR comment'
     required: false
     default: 'true'
+  full-regression-threshold:
+    description: 'Relative threshold for full benchmark regressions (e.g. 125%)'
+    required: false
+    default: '125%'
+  binary-size-threshold:
+    description: 'Binary size growth threshold (e.g. 120%)'
+    required: false
+    default: '120%'
   ferrflow-token:
     description: 'GitHub token for PR comments and artifact access'
     required: true
@@ -156,7 +164,9 @@ runs:
       shell: bash
       run: |
         set +e
-        output=$(bash ${{ github.action_path }}/scripts/compare.sh benchmarks/results/baseline.json benchmarks/results/latest.json 2>&1)
+        output=$(FULL_REGRESSION_THRESHOLD="${{ inputs.full-regression-threshold }}" \
+                 BINARY_SIZE_THRESHOLD="${{ inputs.binary-size-threshold }}" \
+                 bash ${{ github.action_path }}/scripts/compare.sh benchmarks/results/baseline.json benchmarks/results/latest.json 2>&1)
         exit_code=$?
         set -e
         echo "$output"
