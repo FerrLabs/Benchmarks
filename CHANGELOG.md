@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.2.0] - 2026-03-31
+
+### Features
+
+- feat: include competitor comparison in release summary (#38)
+
 ## [2.1.0] - 2026-03-31
 
 ### Features
