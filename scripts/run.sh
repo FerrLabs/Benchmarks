@@ -57,6 +57,8 @@ setup_competitor_config() {
 
   case "$tool" in
     semantic-release)
+      # Use only commit-analyzer and release-notes-generator (no GitHub plugin).
+      # Point remote to the local repo via file:// so git fetch succeeds.
       cat > "$dir/.releaserc.json" <<'CONF'
 {
   "branches": ["main"],
@@ -66,8 +68,8 @@ setup_competitor_config() {
   ]
 }
 CONF
-      git -C "$dir" remote get-url origin &>/dev/null || \
-        git -C "$dir" remote add origin "https://github.com/test/benchmark-fixture.git"
+      git -C "$dir" remote remove origin &>/dev/null || true
+      git -C "$dir" remote add origin "file://$dir"
       ;;
     changesets)
       mkdir -p "$dir/.changeset"
@@ -80,26 +82,20 @@ CONF
   "baseBranch": "main"
 }
 CONF
-      ;;
-    release-please)
-      # release-please requires GitHub API access to function.
-      # Config files alone are not sufficient — it needs --repo-url and --token.
-      # We still set up configs so validation can distinguish "missing config"
-      # from "no API access".
-      local pkg_config='{}'
-      local manifest='{}'
+      # Create a dummy changeset so `status` has something to evaluate
+      local pkg_name="pkg-001"
       if [[ -f "$dir/.ferrflow" ]] && command_exists jq; then
-        pkg_config=$(jq '
-          [.package[] | {("\(.path)"): {"release-type": "node"}}]
-          | add // {}
-        ' "$dir/.ferrflow")
-        manifest=$(jq '
-          [.package[] | {("\(.path)"): "0.1.0"}]
-          | add // {}
-        ' "$dir/.ferrflow")
+        pkg_name=$(jq -r '.package[0].name // "pkg-001"' "$dir/.ferrflow")
       fi
-      echo "{\"packages\": $pkg_config}" > "$dir/release-please-config.json"
-      echo "$manifest" > "$dir/.release-please-manifest.json"
+      cat > "$dir/.changeset/benchmark-dummy.md" <<CONF
+---
+"$pkg_name": minor
+---
+
+benchmark changeset
+CONF
+      git -C "$dir" add .changeset/benchmark-dummy.md &>/dev/null
+      git -C "$dir" commit -m "chore: add benchmark changeset" --allow-empty &>/dev/null || true
       ;;
   esac
 }
@@ -111,10 +107,16 @@ validate_competitor() {
   local cmd="$2"
   local dir="$3"
 
-  if (cd "$dir" && eval "$cmd" >/dev/null 2>&1); then
+  local stderr_file
+  stderr_file=$(mktemp)
+  if (cd "$dir" && eval "$cmd" >/dev/null 2>"$stderr_file"); then
+    rm -f "$stderr_file"
     return 0
   fi
-  echo "    SKIP $tool: command failed validation — results would not be meaningful" >&2
+  local reason
+  reason=$(tail -1 "$stderr_file" 2>/dev/null || echo "unknown error")
+  rm -f "$stderr_file"
+  echo "    SKIP $tool: validation failed — $reason" >&2
   return 1
 }
 
@@ -234,10 +236,11 @@ if ! $SKIP_COMPETITORS && command_exists npx; then
   FERRFLOW_NPM_SIZE=$(get_npm_size ferrflow 2>/dev/null || echo "N/A")
   echo "$FERRFLOW_NPM_SIZE" > "$RAW_DIR/ferrflow-npm-size.txt"
 
+  # release-please is excluded: every command requires GitHub API access,
+  # there is no local-only mode. Only install size is measured (below).
   declare -A COMPETITOR_CMDS=(
     ["semantic-release"]="npx --yes semantic-release --dry-run --no-ci"
     ["changesets"]="npx --yes @changesets/cli status"
-    ["release-please"]="npx --yes release-please release-pr --dry-run"
   )
   declare -A COMPETITOR_PKGS=(
     ["semantic-release"]="semantic-release"
@@ -245,7 +248,7 @@ if ! $SKIP_COMPETITORS && command_exists npx; then
     ["release-please"]="release-please"
   )
 
-  for tool in "semantic-release" "changesets" "release-please"; do
+  for tool in "semantic-release" "changesets"; do
     tool_cmd="${COMPETITOR_CMDS[$tool]}"
     pkg="${COMPETITOR_PKGS[$tool]}"
 
@@ -276,7 +279,7 @@ if ! $SKIP_COMPETITORS && command_exists npx; then
       hyperfine \
         --warmup 1 \
         --runs 3 \
-          --export-json "$raw_file" \
+        --export-json "$raw_file" \
         --shell=bash \
         "cd $tmp_dir && $tool_cmd 2>/dev/null" \
         2>/dev/null
@@ -294,6 +297,10 @@ if ! $SKIP_COMPETITORS && command_exists npx; then
       rm -rf "$tmp_dir"
     done
   done
+  # Measure release-please install size (no runtime benchmark — requires GitHub API)
+  echo "  Measuring release-please install size..." >&2
+  rp_size=$(get_npm_size "release-please" 2>/dev/null || echo "N/A")
+  echo "$rp_size" > "$RAW_DIR/release-please-npm-size.txt"
 else
   echo "  Skipping competitors (npx not available or --skip-competitors)" >&2
 fi
@@ -333,8 +340,8 @@ FERRFLOW_NPM_SIZE=$(cat "$RAW_DIR/ferrflow-npm-size.txt" 2>/dev/null || echo "N/
     done
   done
 
-  # Competitors
-  for tool in "semantic-release" "changesets" "release-please"; do
+  # Competitors (only tools with runtime benchmarks)
+  for tool in "semantic-release" "changesets"; do
     for fixture in "${COMPETITOR_FIXTURES[@]}"; do
       raw_file="$RAW_DIR/${fixture}-${tool}-check.json"
       mem_file="$RAW_DIR/${fixture}-${tool}-check.mem"
@@ -398,7 +405,7 @@ else
     done
 
     # Competitor rows
-    for tool in "semantic-release" "changesets" "release-please"; do
+    for tool in "semantic-release" "changesets"; do
       raw_file="$RAW_DIR/${fixture}-${tool}-check.json"
       mem_file="$RAW_DIR/${fixture}-${tool}-check.mem"
       if [[ ! -f "$raw_file" ]]; then continue; fi
