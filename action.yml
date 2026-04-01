@@ -57,6 +57,7 @@ runs:
     - name: Run micro benchmarks
       if: inputs.type == 'micro' || inputs.type == 'all'
       shell: bash
+      timeout-minutes: 30
       run: cargo bench --bench ferrflow_benchmarks -- --output-format bencher 2>/dev/null | tee output.txt
 
     - name: Find baseline artifact from main
@@ -143,6 +144,7 @@ runs:
     - name: Run full benchmarks
       if: inputs.type == 'full' || inputs.type == 'all'
       shell: bash
+      timeout-minutes: 60
       run: |
         ARGS="--fixtures-dir /tmp/bench-fixtures --results-dir benchmarks/results"
         if [[ "${{ inputs.skip-competitors }}" == "true" ]]; then

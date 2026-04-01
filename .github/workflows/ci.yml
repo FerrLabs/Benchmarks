@@ -75,6 +75,7 @@ jobs:
           cargo install hyperfine
           sudo apt-get install -y jq
       - name: Build ferrflow
+        timeout-minutes: 30
         run: cargo build --release
         working-directory: ferrflow-src
       - name: Add ferrflow to PATH
@@ -83,6 +84,7 @@ jobs:
         run: cargo run --release --bin generate-fixtures -- /tmp/bench-fixtures
         working-directory: ferrflow-src
       - name: Run benchmarks
+        timeout-minutes: 60
         run: |
           bash scripts/run.sh \
             --skip-competitors \
