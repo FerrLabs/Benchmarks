@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.2.2] - 2026-04-01
+
+### Bug Fixes
+
+- fix(bench): replace invalid --time-limit with --max-runs for hyperfine (#41)
+
 ## [2.2.1] - 2026-04-01
 
 ### Bug Fixes
