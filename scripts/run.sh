@@ -214,7 +214,7 @@ for fixture in "${FIXTURES[@]}"; do
     hyperfine \
       --warmup "$WARMUP" \
       --runs "$RUNS" \
-      --time-limit 300 \
+      --max-runs 50 \
       --export-json "$raw_file" \
       --shell=bash \
       "cd $fixture_path && ferrflow $cmd 2>/dev/null" \
@@ -278,7 +278,7 @@ if ! $SKIP_COMPETITORS && command_exists npx; then
       hyperfine \
         --warmup 1 \
         --runs 3 \
-        --time-limit 300 \
+        --max-runs 50 \
         --export-json "$raw_file" \
         --shell=bash \
         "cd $tmp_dir && $tool_cmd 2>/dev/null" \
