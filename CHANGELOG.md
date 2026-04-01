@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.3.0] - 2026-04-01
+
+### Features
+
+- feat: benchmark competitors on mono-large fixture (#44)
+
 ## [2.2.4] - 2026-04-01
 
 ### Bug Fixes
