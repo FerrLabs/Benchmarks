@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.3.1] - 2026-04-01
+
+### Bug Fixes
+
+- fix(scripts): fix competitor benchmark validation failures (#46)
+
 ## [2.3.0] - 2026-04-01
 
 ### Features
