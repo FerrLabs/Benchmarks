@@ -185,8 +185,7 @@ FIXTURES=("single" "mono-small" "mono-medium" "mono-large")
 FIXTURE_LABELS=("single" "mono-small (10 pkg)" "mono-medium (50 pkg)" "mono-large (200 pkg)")
 FERRFLOW_CMDS=("check" "release --dry-run" "version" "tag")
 FERRFLOW_CMD_NAMES=("check" "release-dry" "version" "tag")
-# Competitors only run on the first 3 fixtures
-COMPETITOR_FIXTURES=("single" "mono-small" "mono-medium")
+COMPETITOR_FIXTURES=("single" "mono-small" "mono-medium" "mono-large")
 
 FERRFLOW_BIN_SIZE=$(get_binary_size ferrflow)
 
@@ -398,7 +397,7 @@ else
       echo "| ferrflow | $cmd | ${median}ms | ${stddev}ms | $size_col | ${mem} MB |"
     done
 
-    # Competitor rows (only on first 3 fixtures)
+    # Competitor rows
     for tool in "semantic-release" "changesets" "release-please"; do
       raw_file="$RAW_DIR/${fixture}-${tool}-check.json"
       mem_file="$RAW_DIR/${fixture}-${tool}-check.mem"
