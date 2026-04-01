@@ -45,15 +45,6 @@ jobs:
           dry_run: ${{ inputs.dry_run }}
         env:
           GITHUB_TOKEN: ${{ secrets.FERRFLOW_TOKEN }}
-      - name: Update major version tag
-        if: inputs.dry_run != true
-        run: |
-          TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
-          if [ -n "$TAG" ]; then
-            MAJOR="v$(echo "${TAG#v}" | cut -d. -f1)"
-            git tag -f "$MAJOR"
-            git push origin "refs/tags/$MAJOR" --force
-          fi
       - name: Detect new tag
         id: detect-tag
         run: |

@@ -1,7 +1,8 @@
 {
   "$schema": "https://ferrflow.com/schema/ferrflow.json",
   "workspace": {
-    "tagTemplate": "v{version}"
+    "tagTemplate": "v{version}",
+    "floatingTags": ["major"]
   },
   "package": [
     {
