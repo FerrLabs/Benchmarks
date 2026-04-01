@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.2.1] - 2026-04-01
+
+### Bug Fixes
+
+- fix(ci): add timeout-minutes to benchmark steps and --time-limit to hyperfine (#40)
+
 ## [2.2.0] - 2026-03-31
 
 ### Features
