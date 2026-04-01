@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.2.4] - 2026-04-01
+
+### Bug Fixes
+
+- fix(action): remove timeout-minutes unsupported in composite actions (#43)
+
 ## [2.2.3] - 2026-04-01
 
 ### Bug Fixes
