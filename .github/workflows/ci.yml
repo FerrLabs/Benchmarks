@@ -40,6 +40,14 @@ jobs:
       - name: Record previous tag
         id: prev-tag
         run: echo "tag=$(git describe --tags --abbrev=0 2>/dev/null || echo '')" >> "$GITHUB_OUTPUT"
+      - name: Debug telemetry connectivity
+        run: |
+          echo "=== git remote ==="
+          git remote get-url origin
+          echo "=== curl api.ferrflow.com ==="
+          curl -sv --max-time 10 https://api.ferrflow.com/stats 2>&1 || true
+          echo "=== DNS resolve ==="
+          nslookup api.ferrflow.com || true
       - uses: FerrFlow-Org/ferrflow@v2
         with:
           dry_run: ${{ inputs.dry_run }}
