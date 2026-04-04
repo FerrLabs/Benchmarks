@@ -159,6 +159,7 @@ runs:
       if: inputs.type == 'full' || inputs.type == 'all'
       shell: bash
       run: |
+        mkdir -p benchmarks/results
         ARGS="--fixtures-dir /tmp/bench-fixtures --results-dir benchmarks/results"
         if [[ "${{ inputs.skip-competitors }}" == "true" ]]; then
           ARGS="$ARGS --skip-competitors"
