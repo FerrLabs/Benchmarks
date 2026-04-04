@@ -1,0 +1,37 @@
+{
+  "ferrflow": {
+    "install_methods": {
+      "binary": {
+        "setup": null,
+        "command": "ferrflow"
+      },
+      "npm": {
+        "setup": "npm install -g ferrflow",
+        "command": "npx ferrflow"
+      },
+      "docker": {
+        "setup": "docker pull ghcr.io/ferrflow-org/ferrflow:latest",
+        "command": "docker run --rm -v $PWD:/repo -w /repo ghcr.io/ferrflow-org/ferrflow:latest"
+      }
+    },
+    "commands": ["check", "release --dry-run", "version", "tag"]
+  },
+  "semantic-release": {
+    "install_methods": {
+      "npm": {
+        "setup": "npm install -g semantic-release@23",
+        "command": "npx --yes semantic-release@23 --dry-run --no-ci"
+      }
+    },
+    "commands": [""]
+  },
+  "changesets": {
+    "install_methods": {
+      "npm": {
+        "setup": "npm install -g @changesets/cli",
+        "command": "npx --yes @changesets/cli status"
+      }
+    },
+    "commands": [""]
+  }
+}
