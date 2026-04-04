@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.5.0] - 2026-04-04
+
+### Features
+
+- feat: benchmark tool_configs and disable skipCi (#63)
+
 ## [2.4.0] - 2026-04-04
 
 ### Features
