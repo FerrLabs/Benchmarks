@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.3.3] - 2026-04-04
+
+### Bug Fixes
+
+- fix(ci): add FERRFLOW_TOKEN env var to release job (#55)
+
 ## [2.3.2] - 2026-04-04
 
 ### Bug Fixes
