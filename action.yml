@@ -30,6 +30,9 @@ inputs:
     description: 'Binary size growth threshold (e.g. 120%)'
     required: false
     default: '120%'
+  definitions:
+    description: 'Path to TOML definitions for benchmark fixture generation'
+    required: true
   ferrflow-token:
     description: 'GitHub token for PR comments and artifact access'
     required: true
@@ -145,10 +148,12 @@ runs:
       shell: bash
       run: echo "$PWD/target/release" >> $GITHUB_PATH
 
-    - name: Generate fixtures
+    - name: Generate benchmark fixtures
       if: inputs.type == 'full' || inputs.type == 'all'
-      shell: bash
-      run: cargo run --release --bin generate-fixtures -- /tmp/bench-fixtures
+      uses: FerrFlow-Org/Fixtures@v0
+      with:
+        definitions: ${{ inputs.definitions }}
+        generated-dir: /tmp/bench-fixtures
 
     - name: Run full benchmarks
       if: inputs.type == 'full' || inputs.type == 'all'
