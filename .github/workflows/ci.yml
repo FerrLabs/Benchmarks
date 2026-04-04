@@ -51,6 +51,7 @@ jobs:
           dry_run: ${{ inputs.dry_run }}
         env:
           GITHUB_TOKEN: ${{ secrets.FERRFLOW_TOKEN }}
+          FERRFLOW_TOKEN: ${{ secrets.FERRFLOW_TOKEN }}
       - name: Detect new tag
         id: detect-tag
         run: |
