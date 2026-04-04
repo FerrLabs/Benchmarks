@@ -251,7 +251,7 @@ for tool in $TOOLS; do
           --runs "$RUNS" \
           --export-json "$raw_file" \
           --shell=bash \
-          "cd $tmp_dir && $full_cmd 2>/dev/null || true" \
+          "cd $tmp_dir && $full_cmd >/dev/null 2>&1 || true" \
           2>/dev/null
 
         # Memory (single run)
