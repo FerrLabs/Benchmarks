@@ -86,9 +86,11 @@ jobs:
         working-directory: ferrflow-src
       - name: Add ferrflow to PATH
         run: echo "${{ github.workspace }}/ferrflow-src/target/release" >> "$GITHUB_PATH"
-      - name: Generate fixtures
-        run: cargo run --release --bin generate-fixtures -- /tmp/bench-fixtures
-        working-directory: ferrflow-src
+      - name: Generate benchmark fixtures
+        uses: FerrFlow-Org/Fixtures@v0
+        with:
+          definitions: ferrflow-src/benchmarks/fixtures/definitions
+          generated-dir: /tmp/bench-fixtures
       - name: Run benchmarks
         timeout-minutes: 60
         run: |
