@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.4.0] - 2026-04-04
+
+### Features
+
+- feat: refactor benchmarks to use tools.json and tool_configs from definitions (#62)
+
 ## [2.3.5] - 2026-04-04
 
 ### Bug Fixes
