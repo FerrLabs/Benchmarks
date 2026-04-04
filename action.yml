@@ -161,6 +161,7 @@ runs:
       run: |
         mkdir -p benchmarks/results
         ARGS="--fixtures-dir /tmp/bench-fixtures --results-dir benchmarks/results"
+        ARGS="$ARGS --definitions-dir ${{ inputs.definitions }}"
         if [[ "${{ inputs.skip-competitors }}" == "true" ]]; then
           ARGS="$ARGS --skip-competitors"
         fi
