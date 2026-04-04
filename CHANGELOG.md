@@ -4,6 +4,13 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.3.5] - 2026-04-04
+
+### Bug Fixes
+
+- fix: suppress shellcheck SC2015 for benchmark memory measurement (#60)
+- fix: tolerate non-zero exit codes in benchmarked commands (#59)
+
 ## [2.3.4] - 2026-04-04
 
 ### Bug Fixes
