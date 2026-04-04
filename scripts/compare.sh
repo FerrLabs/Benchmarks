@@ -56,9 +56,9 @@ BINARY_SIZE_THRESHOLD=$(_parse_pct "${BINARY_SIZE_THRESHOLD:-}" "0.20")
 
 # Absolute thresholds (ms)
 declare -A ABS_THRESHOLDS=(
-  ["ferrflow|mono-large|check"]=2000
-  ["ferrflow|mono-large|version"]=500
-  ["ferrflow|mono-large|tag"]=500
+  ["mono-large-ferrflow-binary-check"]=2000
+  ["mono-large-ferrflow-binary-version"]=500
+  ["mono-large-ferrflow-binary-tag"]=500
 )
 
 # ---------------------------------------------------------------------------
@@ -72,7 +72,7 @@ echo "=========================="
 echo ""
 
 # Relative checks (ferrflow benchmarks only)
-for key in $(jq -r '.benchmarks | keys[]' "$LATEST" | grep '^ferrflow|'); do
+for key in $(jq -r '.benchmarks | keys[]' "$LATEST" | grep '\-ferrflow-'); do
   new_median=$(jq -r ".benchmarks[\"$key\"].median_ms" "$LATEST")
   old_median=$(jq -r ".benchmarks[\"$key\"].median_ms // empty" "$BASELINE" 2>/dev/null || echo "")
 
