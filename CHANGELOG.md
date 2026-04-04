@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.5.1] - 2026-04-04
+
+### Bug Fixes
+
+- fix: parse benchmark keys into proper table columns (#64)
+
 ## [2.5.0] - 2026-04-04
 
 ### Features
