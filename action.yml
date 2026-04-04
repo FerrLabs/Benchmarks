@@ -81,6 +81,16 @@ runs:
         github-token: ${{ inputs.ferrflow-token }}
       continue-on-error: true
 
+    - name: Create empty micro baseline if missing
+      if: (inputs.type == 'micro' || inputs.type == 'all') && github.event_name == 'pull_request'
+      shell: bash
+      run: |
+        if [[ ! -f baseline/benchmark-data.json ]]; then
+          mkdir -p baseline
+          echo '[]' > baseline/benchmark-data.json
+          echo "Created empty micro baseline (no previous data found)"
+        fi
+
     - name: Compare and comment (PR)
       if: (inputs.type == 'micro' || inputs.type == 'all') && github.event_name == 'pull_request'
       uses: benchmark-action/github-action-benchmark@v1
