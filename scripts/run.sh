@@ -221,7 +221,7 @@ for fixture in "${FIXTURES[@]}"; do
       2>/dev/null
 
     # Memory (single run)
-    # shellcheck disable=SC2086
+    # shellcheck disable=SC2086,SC2015
     mem=$(cd "$fixture_path" && measure_memory ferrflow $cmd || true)
     # Stash memory in a sidecar file
     echo "$mem" > "$RAW_DIR/${fixture}-ferrflow-${cmd_name}.mem"
