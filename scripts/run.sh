@@ -217,12 +217,12 @@ for fixture in "${FIXTURES[@]}"; do
       --runs "$RUNS" \
       --export-json "$raw_file" \
       --shell=bash \
-      "cd $fixture_path && ferrflow $cmd 2>/dev/null" \
+      "cd $fixture_path && ferrflow $cmd 2>/dev/null || true" \
       2>/dev/null
 
     # Memory (single run)
     # shellcheck disable=SC2086
-    mem=$(cd "$fixture_path" && measure_memory ferrflow $cmd)
+    mem=$(cd "$fixture_path" && measure_memory ferrflow $cmd || true)
     # Stash memory in a sidecar file
     echo "$mem" > "$RAW_DIR/${fixture}-ferrflow-${cmd_name}.mem"
   done
