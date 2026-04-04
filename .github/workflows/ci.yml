@@ -35,8 +35,6 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.FERRFLOW_TOKEN }}
-      - name: Configure git
-        run: git remote set-url origin https://x-access-token:${{ secrets.FERRFLOW_TOKEN }}@github.com/${{ github.repository }}
       - name: Record previous tag
         id: prev-tag
         run: echo "tag=$(git describe --tags --abbrev=0 2>/dev/null || echo '')" >> "$GITHUB_OUTPUT"
