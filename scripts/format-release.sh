@@ -39,8 +39,24 @@ echo "|---------|------|--------|---------|--------|--------|"
 
 jq -r '.benchmarks | keys[]' "$LATEST" | sort | while IFS= read -r key; do
   # Parse key: fixture-tool-method-cmd
-  # Split on '-' but tool names can contain '-' (semantic-release)
-  # Use jq to get median/stddev
+  # Known tools (order matters: longest match first)
+  fixture="" tool="" method="" cmd=""
+  for t in semantic-release release-please changesets ferrflow; do
+    if [[ "$key" == *"-${t}-"* ]]; then
+      tool="$t"
+      fixture="${key%%-"$t"-*}"
+      rest="${key#*"$t"-}"
+      method="${rest%%-*}"
+      cmd="${rest#*-}"
+      [[ "$cmd" == "$method" ]] && cmd=""
+      break
+    fi
+  done
+
+  if [[ -z "$tool" ]]; then
+    fixture="$key"; tool="?"; method="?"; cmd="?"
+  fi
+
   median=$(jq -r ".benchmarks[\"$key\"].median_ms" "$LATEST" | awk '{printf "%.1f", $1}')
   mem=$(jq -r ".benchmarks[\"$key\"].memory_mb" "$LATEST")
 
@@ -62,7 +78,7 @@ jq -r '.benchmarks | keys[]' "$LATEST" | sort | while IFS= read -r key; do
     mem_display="${mem} MB"
   fi
 
-  echo "| ${key} | ${median}ms${delta} | ${mem_display} |"
+  echo "| ${fixture} | ${tool} | ${method} | ${cmd} | ${median}ms${delta} | ${mem_display} |"
 done
 
 echo ""
