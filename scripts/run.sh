@@ -16,6 +16,7 @@ DEFINITIONS_DIR=""
 RAW_DIR=""
 OUTPUT_FORMAT="markdown"
 SKIP_COMPETITORS=false
+VERBOSE="${VERBOSE:-false}"
 WARMUP=3
 RUNS=10
 
@@ -23,6 +24,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --json) OUTPUT_FORMAT="json"; shift ;;
     --skip-competitors) SKIP_COMPETITORS=true; shift ;;
+    --verbose) VERBOSE=true; shift ;;
     --fixtures-dir) FIXTURES_DIR="$2"; shift 2 ;;
     --results-dir) RESULTS_DIR="$2"; shift 2 ;;
     --definitions-dir) DEFINITIONS_DIR="$2"; shift 2 ;;
@@ -73,6 +75,44 @@ write_tool_configs() {
     mkdir -p "$(dirname "$full_path")"
     echo "$content" > "$full_path"
   done <<< "$files"
+}
+
+# Auto-generate ferrflow config for bulk fixtures with empty config
+prepare_ferrflow_fixture() {
+  local dir="$1"
+  local config_file="$dir/ferrflow.json"
+
+  [[ -f "$config_file" ]] || return 0
+  local content
+  content=$(cat "$config_file")
+  [[ "$content" == "{}" ]] || return 0
+
+  local pkgs=()
+  for pkg_json in "$dir"/packages/*/package.json; do
+    [[ -f "$pkg_json" ]] || continue
+    local pkg_name pkg_path
+    pkg_name=$(jq -r '.name' "$pkg_json")
+    pkg_path=$(dirname "$pkg_json")
+    pkg_path="${pkg_path#"$dir/"}"
+    pkgs+=("{\"name\":\"$pkg_name\",\"path\":\"$pkg_path\",\"versioned_files\":[{\"path\":\"$pkg_path/package.json\",\"format\":\"json\"}]}")
+  done
+
+  if [[ ${#pkgs[@]} -gt 0 ]]; then
+    local joined
+    joined=$(IFS=,; echo "${pkgs[*]}")
+    echo "{\"package\":[$joined]}" > "$config_file"
+  fi
+}
+
+# Set up a dummy bare remote for tools that require one (semantic-release, etc.)
+setup_dummy_remote() {
+  local dir="$1"
+  local bare_dir="$2"
+
+  [[ -d "$dir/.git" ]] || return 0
+  git -C "$bare_dir" init --bare -q 2>/dev/null
+  git -C "$dir" remote add origin "$bare_dir" 2>/dev/null || true
+  git -C "$dir" push -q origin HEAD 2>/dev/null || true
 }
 
 # Measure peak RSS in MB (Linux only)
@@ -215,10 +255,19 @@ for tool in $TOOLS; do
 
       # Work on a copy so tool configs don't pollute the original
       tmp_dir=$(mktemp -d)
+      bare_remote=""
       cp -a "$fixture_path/." "$tmp_dir/"
 
       # Write tool-specific config files
       write_tool_configs "$tool" "$tmp_dir" "$def_file"
+
+      # Tool-specific fixture preparation
+      if [[ "$tool" == "ferrflow" ]]; then
+        prepare_ferrflow_fixture "$tmp_dir"
+      else
+        bare_remote=$(mktemp -d)
+        setup_dummy_remote "$tmp_dir" "$bare_remote"
+      fi
 
       # Build commands to benchmark
       readarray -t cmds < <(jq -r --arg t "$tool" '.[$t].commands[]' "$TOOLS_JSON")
@@ -242,7 +291,12 @@ for tool in $TOOLS; do
 
         # Validate the command works before benchmarking
         if ! (cd "$tmp_dir" && eval "$full_cmd" >/dev/null 2>&1); then
-          echo "    SKIP: command failed" >&2
+          if [[ "$VERBOSE" == "true" ]]; then
+            error_out=$(cd "$tmp_dir" && eval "$full_cmd" 2>&1 || true)
+            echo "    SKIP: command failed: $error_out" >&2
+          else
+            echo "    SKIP: command failed" >&2
+          fi
           continue
         fi
 
@@ -260,7 +314,7 @@ for tool in $TOOLS; do
         echo "$mem" > "$RAW_DIR/${fixture}-${tool}-${method}-${cmd_name}.mem"
       done
 
-      rm -rf "$tmp_dir"
+      rm -rf "$tmp_dir" "${bare_remote:-}"
     done
   done
 done

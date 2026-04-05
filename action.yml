@@ -33,6 +33,10 @@ inputs:
   definitions:
     description: 'Path to TOML definitions for benchmark fixture generation'
     required: true
+  verbose:
+    description: 'Show full error output when a benchmark command fails validation'
+    required: false
+    default: 'false'
   ferrflow-token:
     description: 'GitHub token for PR comments and artifact access'
     required: true
@@ -164,6 +168,9 @@ runs:
         ARGS="$ARGS --definitions-dir ${{ inputs.definitions }}"
         if [[ "${{ inputs.skip-competitors }}" == "true" ]]; then
           ARGS="$ARGS --skip-competitors"
+        fi
+        if [[ "${{ inputs.verbose }}" == "true" ]]; then
+          ARGS="$ARGS --verbose"
         fi
         bash ${{ github.action_path }}/scripts/run.sh $ARGS | tee benchmarks/results/summary.md
 
