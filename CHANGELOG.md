@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.5.2] - 2026-04-05
+
+### Bug Fixes
+
+- fix: resolve benchmark SKIP failures for competitors and ferrflow subcommands (#67)
+
 ## [2.5.1] - 2026-04-04
 
 ### Bug Fixes
