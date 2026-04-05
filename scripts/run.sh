@@ -292,7 +292,7 @@ for tool in $TOOLS; do
         # Validate the command works before benchmarking
         if ! (cd "$tmp_dir" && eval "$full_cmd" >/dev/null 2>&1); then
           if [[ "$VERBOSE" == "true" ]]; then
-            error_out=$(cd "$tmp_dir" && eval "$full_cmd" 2>&1 || true)
+            error_out=$(cd "$tmp_dir" && eval "$full_cmd" 2>&1; true)
             echo "    SKIP: command failed: $error_out" >&2
           else
             echo "    SKIP: command failed" >&2
