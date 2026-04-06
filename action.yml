@@ -162,6 +162,8 @@ runs:
     - name: Run full benchmarks
       if: inputs.type == 'full' || inputs.type == 'all'
       shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.ferrflow-token }}
       run: |
         mkdir -p benchmarks/results
         ARGS="--fixtures-dir /tmp/bench-fixtures --results-dir benchmarks/results"
