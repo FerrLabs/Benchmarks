@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.5.3] - 2026-04-06
+
+### Bug Fixes
+
+- fix: resolve changesets workspace resolution and semantic-release token check (#75)
+
 ## [2.5.2] - 2026-04-05
 
 ### Bug Fixes
