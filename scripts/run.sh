@@ -267,6 +267,11 @@ for tool in $TOOLS; do
       else
         bare_remote=$(mktemp -d)
         setup_dummy_remote "$tmp_dir" "$bare_remote"
+
+        # changesets needs resolved node_modules to find workspaces
+        if [[ "$tool" == "changesets" && -f "$tmp_dir/package.json" ]]; then
+          (cd "$tmp_dir" && npm install --ignore-scripts --no-audit --no-fund &>/dev/null) || true
+        fi
       fi
 
       # Build commands to benchmark
@@ -288,6 +293,11 @@ for tool in $TOOLS; do
         raw_file="$RAW_DIR/${fixture}-${tool}-${method}-${cmd_name}.json"
 
         echo "  $label: $cmd on $fixture..." >&2
+
+        # semantic-release checks GITHUB_TOKEN even in --dry-run --no-ci
+        if [[ "$tool" == "semantic-release" ]]; then
+          export GITHUB_TOKEN="${GITHUB_TOKEN:-fake-token-for-benchmark}"
+        fi
 
         # Validate the command works before benchmarking
         if ! (cd "$tmp_dir" && eval "$full_cmd" >/dev/null 2>&1); then
