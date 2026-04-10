@@ -14,7 +14,7 @@
         "command": "docker run --rm --user $(id -u):$(id -g) -v $PWD:/repo -w /repo ghcr.io/ferrflow-org/ferrflow:latest"
       }
     },
-    "commands": ["check", "release --dry-run", "version", "tag"]
+    "commands": ["check", "release --dry-run", "version", "tag", "validate"]
   },
   "semantic-release": {
     "install_methods": {
