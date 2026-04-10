@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.8.0] - 2026-04-10
+
+### Features
+
+- feat: restructure benchmark tables to pivot layout grouped by method (#84)
+
 ## [2.7.0] - 2026-04-10
 
 ### Features
