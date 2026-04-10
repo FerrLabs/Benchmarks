@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.5.5] - 2026-04-10
+
+### Bug Fixes
+
+- fix: remove || true from hyperfine command to avoid timing failed runs (#79)
+
 ## [2.5.4] - 2026-04-10
 
 ### Bug Fixes
