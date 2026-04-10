@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.5.7] - 2026-04-10
+
+### Bug Fixes
+
+- fix: use jq to build latest.json instead of string concatenation (#81)
+
 ## [2.5.6] - 2026-04-10
 
 ### Bug Fixes
