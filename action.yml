@@ -30,6 +30,14 @@ inputs:
     description: 'Binary size growth threshold (e.g. 120%)'
     required: false
     default: '120%'
+  warmup:
+    description: 'Number of warmup runs before timing (hyperfine --warmup)'
+    required: false
+    default: '3'
+  runs:
+    description: 'Number of timed runs (hyperfine --runs)'
+    required: false
+    default: '10'
   definitions:
     description: 'Path to TOML definitions for benchmark fixture generation'
     required: true
@@ -168,6 +176,7 @@ runs:
         mkdir -p benchmarks/results
         ARGS="--fixtures-dir /tmp/bench-fixtures --results-dir benchmarks/results"
         ARGS="$ARGS --definitions-dir ${{ inputs.definitions }}"
+        ARGS="$ARGS --warmup ${{ inputs.warmup }} --runs ${{ inputs.runs }}"
         if [[ "${{ inputs.skip-competitors }}" == "true" ]]; then
           ARGS="$ARGS --skip-competitors"
         fi
