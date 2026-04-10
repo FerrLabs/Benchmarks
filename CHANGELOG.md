@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.5.4] - 2026-04-10
+
+### Bug Fixes
+
+- fix(ci): remove debug telemetry step from release job (#77)
+
 ## [2.5.3] - 2026-04-06
 
 ### Bug Fixes
