@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.6.0] - 2026-04-10
+
+### Features
+
+- feat: use equal warmup and runs for all tools with configurable inputs (#82)
+
 ## [2.5.7] - 2026-04-10
 
 ### Bug Fixes
