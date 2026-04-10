@@ -24,6 +24,8 @@ Reusable GitHub Action for running FerrFlow benchmarks and detecting performance
 | `full-regression-threshold` | Relative threshold for full benchmark regressions (e.g. `125%`) | `125%` |
 | `binary-size-threshold` | Binary size growth threshold (e.g. `120%`) | `120%` |
 | `comment-on-pr` | Post benchmark results as PR comment | `true` |
+| `definitions` | Path to fixture definitions for benchmark generation | required |
+| `verbose` | Show full error output when a benchmark command fails validation | `false` |
 | `ferrflow-token` | GitHub token for PR comments and artifact access | required |
 
 ## Outputs
