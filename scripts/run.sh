@@ -389,27 +389,95 @@ echo "Results saved to $RESULTS_DIR/latest.json" >&2
 if [[ "$OUTPUT_FORMAT" == "json" ]]; then
   cat "$RESULTS_DIR/latest.json"
 else
-  for fixture in "${FIXTURES[@]}"; do
-    echo ""
-    echo "### ${fixture}"
-    echo ""
-    echo "| Tool | Method | Command | Median | Stddev | Memory (RSS) |"
-    echo "|------|--------|---------|--------|--------|--------------|"
-
-    for raw_file in "$RAW_DIR/${fixture}"-*.json; do
-      [[ -f "$raw_file" ]] || continue
-      basename=$(basename "$raw_file" .json)
-      # Parse: fixture-tool-method-cmd
-      rest="${basename#"${fixture}-"}"
-      tool=$(echo "$rest" | cut -d'-' -f1)
-      method=$(echo "$rest" | cut -d'-' -f2)
-      cmd=$(echo "$rest" | cut -d'-' -f3-)
-
-      median=$(extract_median "$raw_file" 2>/dev/null || echo "N/A")
-      stddev=$(extract_stddev "$raw_file" 2>/dev/null || echo "N/A")
-      mem=$(cat "$RAW_DIR/${basename}.mem" 2>/dev/null || echo "N/A")
-
-      echo "| $tool | $method | $cmd | ${median}ms | ${stddev}ms | ${mem} MB |"
+  # Discover methods and commands from raw files
+  declare -A SEEN_METHODS
+  declare -A SEEN_CMDS
+  for raw_file in "$RAW_DIR"/*.json; do
+    [[ -f "$raw_file" ]] || continue
+    bname=$(basename "$raw_file" .json)
+    for fixture in "${FIXTURES[@]}"; do
+      rest="${bname#"${fixture}-"}"
+      [[ "$rest" == "$bname" ]] && continue
+      method=$(echo "$rest" | awk -F- '{
+        # tool is first field, method is second
+        for (t in KNOWN_TOOLS) {}
+        print $2
+      }')
+      # Parse: tool-method-cmd (tool may be multi-part like semantic-release)
+      for t in semantic-release release-please changesets ferrflow; do
+        if [[ "$rest" == "${t}-"* ]]; then
+          after="${rest#"${t}-"}"
+          method="${after%%-*}"
+          cmd="${after#*-}"
+          [[ "$cmd" == "$method" ]] && cmd=""
+          SEEN_METHODS[$method]=1
+          [[ -n "$cmd" ]] && SEEN_CMDS[$cmd]=1
+          break
+        fi
+      done
+      break
     done
+  done
+
+  # Collect unique commands in a stable order
+  readarray -t CMD_LIST < <(printf '%s\n' "${!SEEN_CMDS[@]}" | sort)
+
+  # Build header
+  for method in $(printf '%s\n' "${!SEEN_METHODS[@]}" | sort); do
+    echo ""
+    echo "### ${method^}"
+    echo ""
+    header="| Fixture | Tool |"
+    separator="|---------|------|"
+    for cmd in "${CMD_LIST[@]}"; do
+      header="$header $cmd |"
+      separator="$separator------|"
+    done
+    header="$header Peak RSS |"
+    separator="$separator----------|"
+    echo "$header"
+    echo "$separator"
+
+    for fixture in "${FIXTURES[@]}"; do
+      # Find all tools for this fixture+method
+      declare -A TOOL_ROWS
+      for raw_file in "$RAW_DIR/${fixture}"-*.json; do
+        [[ -f "$raw_file" ]] || continue
+        bname=$(basename "$raw_file" .json)
+        rest="${bname#"${fixture}-"}"
+        for t in semantic-release release-please changesets ferrflow; do
+          if [[ "$rest" == "${t}-${method}-"* || "$rest" == "${t}-${method}" ]]; then
+            TOOL_ROWS[$t]=1
+            break
+          fi
+        done
+      done
+
+      for tool in $(printf '%s\n' "${!TOOL_ROWS[@]}" | sort); do
+        row="| $fixture | $tool |"
+        mem="N/A"
+        for cmd in "${CMD_LIST[@]}"; do
+          raw_file="$RAW_DIR/${fixture}-${tool}-${method}-${cmd}.json"
+          if [[ -f "$raw_file" ]]; then
+            median=$(extract_median "$raw_file" 2>/dev/null || echo "N/A")
+            row="$row ${median}ms |"
+            # Use memory from any command (they share the same peak RSS roughly)
+            m=$(cat "$RAW_DIR/${fixture}-${tool}-${method}-${cmd}.mem" 2>/dev/null || echo "")
+            [[ -n "$m" && "$m" != "N/A" ]] && mem="$m"
+          else
+            row="$row - |"
+          fi
+        done
+        if [[ "$mem" != "N/A" ]]; then
+          row="$row ${mem} MB |"
+        else
+          row="$row N/A |"
+        fi
+        echo "$row"
+      done
+      unset TOOL_ROWS
+      declare -A TOOL_ROWS
+    done
+    unset TOOL_ROWS
   done
 fi

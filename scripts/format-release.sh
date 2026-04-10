@@ -34,12 +34,12 @@ BINARY_SIZE=$(jq -r '.ferrflow_binary_size_mb' "$LATEST")
 
 echo "## Performance"
 echo ""
-echo "| Fixture | Tool | Method | Command | Median | Memory |"
-echo "|---------|------|--------|---------|--------|--------|"
 
-jq -r '.benchmarks | keys[]' "$LATEST" | sort | while IFS= read -r key; do
-  # Parse key: fixture-tool-method-cmd
-  # Known tools (order matters: longest match first)
+# Parse all benchmark keys into structured data
+declare -A ALL_METHODS ALL_CMDS ALL_FIXTURES ALL_TOOLS
+declare -A BENCH_DATA BENCH_MEM
+
+while IFS= read -r key; do
   fixture="" tool="" method="" cmd=""
   for t in semantic-release release-please changesets ferrflow; do
     if [[ "$key" == *"-${t}-"* ]]; then
@@ -52,10 +52,12 @@ jq -r '.benchmarks | keys[]' "$LATEST" | sort | while IFS= read -r key; do
       break
     fi
   done
+  [[ -z "$tool" ]] && continue
 
-  if [[ -z "$tool" ]]; then
-    fixture="$key"; tool="?"; method="?"; cmd="?"
-  fi
+  ALL_METHODS[$method]=1
+  [[ -n "$cmd" ]] && ALL_CMDS[$cmd]=1
+  ALL_FIXTURES[$fixture]=1
+  ALL_TOOLS[$tool]=1
 
   median=$(jq -r ".benchmarks[\"$key\"].median_ms" "$LATEST" | awk '{printf "%.1f", $1}')
   mem=$(jq -r ".benchmarks[\"$key\"].memory_mb" "$LATEST")
@@ -73,13 +75,48 @@ jq -r '.benchmarks | keys[]' "$LATEST" | sort | while IFS= read -r key; do
     fi
   fi
 
-  mem_display="N/A"
+  [[ -n "$cmd" ]] && BENCH_DATA["${fixture}|${tool}|${method}|${cmd}"]="${median}ms${delta}"
   if [[ "$mem" != "N/A" ]]; then
-    mem_display="${mem} MB"
+    BENCH_MEM["${fixture}|${tool}|${method}"]="${mem} MB"
   fi
+done < <(jq -r '.benchmarks | keys[]' "$LATEST" | sort)
 
-  echo "| ${fixture} | ${tool} | ${method} | ${cmd} | ${median}ms${delta} | ${mem_display} |"
+readarray -t CMD_LIST < <(printf '%s\n' "${!ALL_CMDS[@]}" | sort)
+readarray -t FIXTURE_LIST < <(printf '%s\n' "${!ALL_FIXTURES[@]}" | sort)
+
+for method in $(printf '%s\n' "${!ALL_METHODS[@]}" | sort); do
+  echo "### ${method^}"
+  echo ""
+  header="| Fixture | Tool |"
+  separator="|---------|------|"
+  for cmd in "${CMD_LIST[@]}"; do
+    header="$header $cmd |"
+    separator="$separator------|"
+  done
+  header="$header Peak RSS |"
+  separator="$separator----------|"
+  echo "$header"
+  echo "$separator"
+
+  for fixture in "${FIXTURE_LIST[@]}"; do
+    for tool in $(printf '%s\n' "${!ALL_TOOLS[@]}" | sort); do
+      has_data=false
+      row="| $fixture | $tool |"
+      for cmd in "${CMD_LIST[@]}"; do
+        val="${BENCH_DATA["${fixture}|${tool}|${method}|${cmd}"]:-}"
+        if [[ -n "$val" ]]; then
+          row="$row $val |"
+          has_data=true
+        else
+          row="$row - |"
+        fi
+      done
+      mem="${BENCH_MEM["${fixture}|${tool}|${method}"]:-N/A}"
+      row="$row $mem |"
+      $has_data && echo "$row"
+    done
+  done
+  echo ""
 done
 
-echo ""
 echo "*Binary size: ${BINARY_SIZE} MB — ferrflow ${VERSION}*"
