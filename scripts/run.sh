@@ -3,8 +3,9 @@ set -euo pipefail
 
 # FerrFlow Benchmark Runner (hyperfine)
 #
-# Usage: ./run.sh [--json] [--skip-competitors] [--fixtures-dir <path>]
-#                 [--results-dir <path>] [--definitions-dir <path>]
+# Usage: ./run.sh [--json] [--skip-competitors] [--warmup <n>] [--runs <n>]
+#                 [--fixtures-dir <path>] [--results-dir <path>]
+#                 [--definitions-dir <path>]
 #
 # Requires: ferrflow, hyperfine, jq
 
@@ -25,6 +26,8 @@ while [[ $# -gt 0 ]]; do
     --json) OUTPUT_FORMAT="json"; shift ;;
     --skip-competitors) SKIP_COMPETITORS=true; shift ;;
     --verbose) VERBOSE=true; shift ;;
+    --warmup) WARMUP="$2"; shift 2 ;;
+    --runs) RUNS="$2"; shift 2 ;;
     --fixtures-dir) FIXTURES_DIR="$2"; shift 2 ;;
     --results-dir) RESULTS_DIR="$2"; shift 2 ;;
     --definitions-dir) DEFINITIONS_DIR="$2"; shift 2 ;;
