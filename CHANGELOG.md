@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.7.0] - 2026-04-10
+
+### Features
+
+- feat: add validate command to ferrflow benchmarks (#83)
+
 ## [2.6.0] - 2026-04-10
 
 ### Features
