@@ -345,33 +345,36 @@ FERRFLOW_VERSION=$(ferrflow --version 2>/dev/null | head -1 || echo "unknown")
 FERRFLOW_BIN_SIZE=$(cat "$RAW_DIR/ferrflow-binary-size.txt" 2>/dev/null || echo "N/A")
 FERRFLOW_NPM_SIZE=$(cat "$RAW_DIR/ferrflow-npm-size.txt" 2>/dev/null || echo "N/A")
 
-{
-  echo "{"
-  echo "  \"timestamp\": \"$TIMESTAMP\","
-  echo "  \"ferrflow_version\": \"$FERRFLOW_VERSION\","
-  echo "  \"ferrflow_binary_size_mb\": \"$FERRFLOW_BIN_SIZE\","
-  echo "  \"ferrflow_npm_size_mb\": \"$FERRFLOW_NPM_SIZE\","
-  echo "  \"benchmarks\": {"
+BENCHMARKS_OBJ='{}'
+for raw_file in "$RAW_DIR"/*.json; do
+  [[ -f "$raw_file" ]] || continue
+  bname=$(basename "$raw_file" .json)
 
-  first_bench=true
-  for raw_file in "$RAW_DIR"/*.json; do
-    [[ -f "$raw_file" ]] || continue
-    basename=$(basename "$raw_file" .json)
+  median=$(extract_median "$raw_file" 2>/dev/null || echo "0")
+  stddev=$(extract_stddev "$raw_file" 2>/dev/null || echo "0")
+  mem=$(cat "$RAW_DIR/${bname}.mem" 2>/dev/null || echo "N/A")
 
-    median=$(extract_median "$raw_file" 2>/dev/null || echo "0")
-    stddev=$(extract_stddev "$raw_file" 2>/dev/null || echo "0")
-    mem=$(cat "$RAW_DIR/${basename}.mem" 2>/dev/null || echo "N/A")
+  BENCHMARKS_OBJ=$(echo "$BENCHMARKS_OBJ" | jq \
+    --arg k "$bname" \
+    --argjson median "$median" \
+    --argjson stddev "$stddev" \
+    --arg mem "$mem" \
+    '.[$k] = {median_ms: $median, stddev_ms: $stddev, memory_mb: $mem}')
+done
 
-    if ! $first_bench; then echo ","; fi
-    first_bench=false
-    printf '    "%s": {"median_ms": %s, "stddev_ms": %s, "memory_mb": "%s"}' \
-      "$basename" "$median" "$stddev" "$mem"
-  done
-
-  echo ""
-  echo "  }"
-  echo "}"
-} > "$RESULTS_DIR/latest.json"
+jq -n \
+  --arg ts "$TIMESTAMP" \
+  --arg ver "$FERRFLOW_VERSION" \
+  --arg bin "$FERRFLOW_BIN_SIZE" \
+  --arg npm "$FERRFLOW_NPM_SIZE" \
+  --argjson benchmarks "$BENCHMARKS_OBJ" \
+  '{
+    timestamp: $ts,
+    ferrflow_version: $ver,
+    ferrflow_binary_size_mb: $bin,
+    ferrflow_npm_size_mb: $npm,
+    benchmarks: $benchmarks
+  }' > "$RESULTS_DIR/latest.json"
 
 echo "" >&2
 echo "Results saved to $RESULTS_DIR/latest.json" >&2
