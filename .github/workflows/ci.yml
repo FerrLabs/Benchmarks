@@ -21,9 +21,19 @@ jobs:
       - name: ShellCheck
         run: shellcheck scripts/*.sh
 
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install bats
+        run: sudo apt-get install -y bats
+      - name: Run tests
+        run: bats tests/
+
   release:
     name: Release
-    needs: lint
+    needs: [lint, test]
     runs-on: ubuntu-latest
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     permissions:
@@ -55,7 +65,7 @@ jobs:
 
   benchmark:
     name: Benchmark
-    needs: lint
+    needs: [lint, test]
     runs-on: ubuntu-latest
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     steps:
