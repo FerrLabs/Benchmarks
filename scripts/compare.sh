@@ -103,6 +103,7 @@ for key in "${!ABS_THRESHOLDS[@]}"; do
   new_median=$(jq -r ".benchmarks[\"$key\"].median_ms // empty" "$LATEST" 2>/dev/null || echo "")
 
   if [[ -z "$new_median" || "$new_median" == "null" ]]; then
+    echo "  WARN $key: absolute threshold defined but no matching benchmark found" >&2
     continue
   fi
 
