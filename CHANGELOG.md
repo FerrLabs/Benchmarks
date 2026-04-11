@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.8.1] - 2026-04-11
+
+### Bug Fixes
+
+- fix: validate memory measurement is numeric before display (#86)
+
 ## [2.8.0] - 2026-04-10
 
 ### Features
