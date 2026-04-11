@@ -120,8 +120,14 @@ setup_dummy_remote() {
 
 # Measure peak RSS in MB (Linux only)
 measure_memory() {
-  if [[ "$(uname)" == "Linux" ]]; then
-    /usr/bin/time -v "$@" 2>&1 >/dev/null | grep "Maximum resident" | awk '{print $6}' | awk '{printf "%.1f", $1/1024}'
+  if [[ "$(uname)" != "Linux" ]] || ! command -v /usr/bin/time &>/dev/null; then
+    echo "N/A"
+    return
+  fi
+  local raw
+  raw=$(/usr/bin/time -v "$@" 2>&1 >/dev/null | grep "Maximum resident" | awk '{print $6}')
+  if [[ -n "$raw" && "$raw" =~ ^[0-9]+$ ]]; then
+    awk "BEGIN {printf \"%.1f\", $raw/1024}"
   else
     echo "N/A"
   fi
@@ -463,7 +469,7 @@ else
             row="$row ${median}ms |"
             # Use memory from any command (they share the same peak RSS roughly)
             m=$(cat "$RAW_DIR/${fixture}-${tool}-${method}-${cmd}.mem" 2>/dev/null || echo "")
-            [[ -n "$m" && "$m" != "N/A" ]] && mem="$m"
+            [[ -n "$m" && "$m" =~ ^[0-9]+\.?[0-9]*$ ]] && mem="$m"
           else
             row="$row - |"
           fi
