@@ -48,7 +48,7 @@ jobs:
       - name: Record previous tag
         id: prev-tag
         run: echo "tag=$(git describe --tags --abbrev=0 2>/dev/null || echo '')" >> "$GITHUB_OUTPUT"
-      - uses: FerrFlow-Org/ferrflow@v2
+      - uses: FerrFlow-Org/ferrflow@v3
         with:
           dry_run: ${{ inputs.dry_run }}
         env:
