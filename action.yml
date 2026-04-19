@@ -72,19 +72,33 @@ runs:
     - name: Run micro benchmarks
       if: inputs.type == 'micro' || inputs.type == 'all'
       shell: bash
-      # Criterion's bencher-format output occasionally emits orphan
-      # `bench: XYZ ns/iter (...)` lines — no preceding `test <name> ...`
-      # prefix. benchmark-action/github-action-benchmark blows up on those
-      # with exit 101. Filter to only keep the well-formed
-      # `test <name> ... bench: N ns/iter (+/- M)` rows, which is all the
-      # action needs anyway.
+      # cargo bench sometimes exits non-zero after the last benchmark prints
+      # (criterion teardown noise, swallowed by the stderr redirect) and its
+      # bencher-format output occasionally emits orphan `bench: XYZ ns/iter`
+      # lines missing the `test <name> ...` prefix. Neither is recoverable
+      # for us: the benchmark-action that consumes output.txt chokes on the
+      # orphan lines, and the non-zero exit was killing the job even when
+      # every real benchmark completed. Tolerate both: capture stderr
+      # separately, let the pipe return the bench exit code, and only fail
+      # the step if NO well-formed rows got captured.
       run: |
-        set -o pipefail
-        cargo bench --bench ferrflow_benchmarks -- --output-format bencher 2>/dev/null | tee raw-output.txt
-        grep -E '^test .+ \.\.\. bench:[[:space:]]+[0-9,]+ ns/iter' raw-output.txt > output.txt
+        set +e
+        cargo bench --bench ferrflow_benchmarks -- --output-format bencher \
+          2> bench-stderr.log | tee raw-output.txt
+        bench_exit=${PIPESTATUS[0]}
+        set -e
+        if [ "$bench_exit" != "0" ]; then
+          echo "::warning::cargo bench exited ${bench_exit} — tolerating as long as benchmark rows were captured. Stderr tail:"
+          tail -40 bench-stderr.log || true
+        fi
+        grep -E '^test .+ \.\.\. bench:[[:space:]]+[0-9,]+ ns/iter' raw-output.txt > output.txt || true
         echo "---"
         echo "Filtered bencher output ($(wc -l < output.txt) lines kept):"
         cat output.txt
+        if [ ! -s output.txt ]; then
+          echo "::error::no well-formed benchmark rows captured; cargo bench exit was ${bench_exit}"
+          exit 1
+        fi
 
     - name: Find baseline artifact from main
       if: (inputs.type == 'micro' || inputs.type == 'all') && github.event_name == 'pull_request'
