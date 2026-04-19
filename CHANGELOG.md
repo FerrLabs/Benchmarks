@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [3.0.2] - 2026-04-19
+
+### Bug Fixes
+
+- fix(micro): tolerate cargo bench non-zero exit when rows were captured (#91)
+
 ## [3.0.1] - 2026-04-19
 
 ### Bug Fixes
