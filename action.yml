@@ -72,7 +72,19 @@ runs:
     - name: Run micro benchmarks
       if: inputs.type == 'micro' || inputs.type == 'all'
       shell: bash
-      run: cargo bench --bench ferrflow_benchmarks -- --output-format bencher 2>/dev/null | tee output.txt
+      # Criterion's bencher-format output occasionally emits orphan
+      # `bench: XYZ ns/iter (...)` lines — no preceding `test <name> ...`
+      # prefix. benchmark-action/github-action-benchmark blows up on those
+      # with exit 101. Filter to only keep the well-formed
+      # `test <name> ... bench: N ns/iter (+/- M)` rows, which is all the
+      # action needs anyway.
+      run: |
+        set -o pipefail
+        cargo bench --bench ferrflow_benchmarks -- --output-format bencher 2>/dev/null | tee raw-output.txt
+        grep -E '^test .+ \.\.\. bench:[[:space:]]+[0-9,]+ ns/iter' raw-output.txt > output.txt
+        echo "---"
+        echo "Filtered bencher output ($(wc -l < output.txt) lines kept):"
+        cat output.txt
 
     - name: Find baseline artifact from main
       if: (inputs.type == 'micro' || inputs.type == 'all') && github.event_name == 'pull_request'
