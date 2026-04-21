@@ -188,7 +188,7 @@ runs:
 
     - name: Generate benchmark fixtures
       if: inputs.type == 'full' || inputs.type == 'all'
-      uses: FerrFlow-Org/Fixtures@v0
+      uses: FerrLabs/Fixtures@v0
       with:
         definitions: ${{ inputs.definitions }}
         generated-dir: /tmp/bench-fixtures
