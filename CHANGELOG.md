@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [3.0.3] - 2026-04-21
+
+### Bug Fixes
+
+- fix(ci): rebrand GHCR + GitHub URLs from ferrflow-org to ferrlabs (#92)
+
 ## [3.0.2] - 2026-04-19
 
 ### Bug Fixes
