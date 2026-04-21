@@ -1,14 +1,14 @@
 # FerrFlow Benchmarks
 
-[![CI](https://github.com/FerrFlow-Org/Benchmarks/actions/workflows/ci.yml/badge.svg)](https://github.com/FerrFlow-Org/Benchmarks/actions/workflows/ci.yml)
-[![License](https://img.shields.io/github/license/FerrFlow-Org/Benchmarks)](LICENSE)
+[![CI](https://github.com/FerrLabs/Benchmarks/actions/workflows/ci.yml/badge.svg)](https://github.com/FerrLabs/Benchmarks/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/FerrLabs/Benchmarks)](LICENSE)
 
 Reusable GitHub Action for running FerrFlow benchmarks and detecting performance regressions.
 
 ## Usage
 
 ```yaml
-- uses: FerrFlow-Org/Benchmarks@v2
+- uses: FerrLabs/Benchmarks@v2
   with:
     type: micro        # micro, full, or all
     ferrflow-token: ${{ secrets.FERRFLOW_TOKEN }}
