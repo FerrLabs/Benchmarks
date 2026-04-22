@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [3.1.0] - 2026-04-22
+
+### Features
+
+- feat(action): add group-filter input to support matrix sharding (#94)
+
 ## [3.0.3] - 2026-04-21
 
 ### Bug Fixes
