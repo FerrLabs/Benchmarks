@@ -1,6 +1,5 @@
 # FerrFlow Benchmarks
 
-[![CI](https://github.com/FerrLabs/Benchmarks/actions/workflows/ci.yml/badge.svg)](https://github.com/FerrLabs/Benchmarks/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/FerrLabs/Benchmarks)](LICENSE)
 
 Reusable GitHub Action for running FerrFlow benchmarks and detecting performance regressions.
