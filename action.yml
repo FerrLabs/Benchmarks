@@ -48,6 +48,10 @@ inputs:
   ferrflow-token:
     description: 'GitHub token for PR comments and artifact access'
     required: true
+  group-filter:
+    description: 'Optional criterion bench group filter (substring). If set, only benches matching this are run. Use for matrix sharding.'
+    required: false
+    default: ''
 
 outputs:
   regression-detected:
@@ -83,8 +87,12 @@ runs:
       # the step if NO well-formed rows got captured.
       run: |
         set +e
-        cargo bench --bench ferrflow_benchmarks -- --output-format bencher \
-          2> bench-stderr.log | tee raw-output.txt
+        GROUP_FILTER="${{ inputs.group-filter }}"
+        BENCH_ARGS=(--bench ferrflow_benchmarks -- --output-format bencher)
+        if [ -n "$GROUP_FILTER" ]; then
+          BENCH_ARGS+=(--filter "$GROUP_FILTER")
+        fi
+        cargo bench "${BENCH_ARGS[@]}" 2> bench-stderr.log | tee raw-output.txt
         bench_exit=${PIPESTATUS[0]}
         set -e
         if [ "$bench_exit" != "0" ]; then
