@@ -142,7 +142,13 @@ runs:
         fi
 
     - name: Compare and comment (PR)
-      if: (inputs.type == 'micro' || inputs.type == 'all') && github.event_name == 'pull_request'
+      # Skip the compare+comment step entirely when the caller disables PR
+      # commenting (matrix shards set comment-on-pr: false — an aggregate job
+      # merges all shard outputs and runs the comparison once with proper
+      # pull-requests: write permission). Keeping this step here would fail
+      # on regression alerts because matrixed jobs don't have permission to
+      # post PR reviews.
+      if: (inputs.type == 'micro' || inputs.type == 'all') && github.event_name == 'pull_request' && inputs.comment-on-pr == 'true'
       uses: benchmark-action/github-action-benchmark@v1
       with:
         tool: cargo
