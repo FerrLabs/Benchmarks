@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [3.1.1] - 2026-04-22
+
+### Bug Fixes
+
+- fix(action): pass criterion group-filter as positional arg (#95)
+
 ## [3.1.0] - 2026-04-22
 
 ### Features
