@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [3.1.2] - 2026-04-22
+
+### Bug Fixes
+
+- fix(action): skip compare+comment when comment-on-pr is false (#96)
+
 ## [3.1.1] - 2026-04-22
 
 ### Bug Fixes
