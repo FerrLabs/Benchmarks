@@ -90,7 +90,8 @@ runs:
         GROUP_FILTER="${{ inputs.group-filter }}"
         BENCH_ARGS=(--bench ferrflow_benchmarks -- --output-format bencher)
         if [ -n "$GROUP_FILTER" ]; then
-          BENCH_ARGS+=(--filter "$GROUP_FILTER")
+          # criterion takes the filter as a positional arg, not --filter
+          BENCH_ARGS+=("$GROUP_FILTER")
         fi
         cargo bench "${BENCH_ARGS[@]}" 2> bench-stderr.log | tee raw-output.txt
         bench_exit=${PIPESTATUS[0]}
