@@ -1,6 +1,7 @@
 # FerrFlow Benchmarks
 
 [![License](https://img.shields.io/github/license/FerrLabs/Benchmarks)](LICENSE)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/FerrLabs/Benchmarks/badge)](https://scorecard.dev/viewer/?uri=github.com/FerrLabs/Benchmarks)
 
 Reusable GitHub Action for running FerrFlow benchmarks and detecting performance regressions.
 
