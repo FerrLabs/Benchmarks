@@ -203,7 +203,7 @@ runs:
 
     - name: Generate benchmark fixtures
       if: inputs.type == 'full' || inputs.type == 'all'
-      uses: FerrLabs/Fixtures@v0
+      uses: FerrLabs/Fixtures@v1
       with:
         definitions: ${{ inputs.definitions }}
         generated-dir: /tmp/bench-fixtures
@@ -259,7 +259,7 @@ runs:
 
     - name: Post full benchmark results as PR comment
       if: (inputs.type == 'full' || inputs.type == 'all') && github.event_name == 'pull_request' && inputs.comment-on-pr == 'true'
-      uses: actions/github-script@v7
+      uses: actions/github-script@v9
       with:
         github-token: ${{ inputs.ferrflow-token }}
         script: |
