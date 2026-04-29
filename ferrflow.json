@@ -3,7 +3,7 @@
   "workspace": {
     "tagTemplate": "v{version}",
     "floatingTags": ["major"],
-    "skipCi": true
+    "skipCi": false
   },
   "package": [
     {
