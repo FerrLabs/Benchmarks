@@ -15,7 +15,7 @@ on:
 jobs:
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: ferrlabs-k8s
     steps:
       - uses: actions/checkout@v6
       - name: ShellCheck
@@ -23,7 +23,7 @@ jobs:
 
   test:
     name: Test
-    runs-on: ubuntu-latest
+    runs-on: ferrlabs-k8s
     steps:
       - uses: actions/checkout@v6
       - name: Install bats
@@ -34,7 +34,7 @@ jobs:
   release:
     name: Release
     needs: [lint, test]
-    runs-on: ubuntu-latest
+    runs-on: ferrlabs-k8s
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     permissions:
       contents: write
@@ -64,7 +64,7 @@ jobs:
   benchmark:
     name: Benchmark
     needs: [lint, test]
-    runs-on: ubuntu-latest
+    runs-on: ferrlabs-k8s
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v6
@@ -110,7 +110,7 @@ jobs:
   update-release:
     name: Update release with benchmarks
     needs: [release, benchmark]
-    runs-on: ubuntu-latest
+    runs-on: ferrlabs-k8s
     if: needs.release.outputs.tag != ''
     permissions:
       contents: write
