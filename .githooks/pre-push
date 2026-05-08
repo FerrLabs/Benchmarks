@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if command -v shellcheck >/dev/null 2>&1; then
+  echo "==> shellcheck scripts/*.sh"
+  shellcheck scripts/*.sh
+else
+  echo "(shellcheck not installed — skipping; CI will run it)"
+fi
+
+if command -v bats >/dev/null 2>&1; then
+  echo "==> bats tests/"
+  bats tests/
+else
+  echo "(bats not installed — skipping; CI will run it)"
+fi
