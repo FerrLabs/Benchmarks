@@ -410,7 +410,7 @@ else
         print $2
       }')
       # Parse: tool-method-cmd (tool may be multi-part like semantic-release)
-      for t in semantic-release release-please changesets ferrflow; do
+      for t in commit-and-tag-version standard-version semantic-release release-please changesets ferrflow; do
         if [[ "$rest" == "${t}-"* ]]; then
           after="${rest#"${t}-"}"
           method="${after%%-*}"
@@ -451,7 +451,7 @@ else
         [[ -f "$raw_file" ]] || continue
         bname=$(basename "$raw_file" .json)
         rest="${bname#"${fixture}-"}"
-        for t in semantic-release release-please changesets ferrflow; do
+        for t in commit-and-tag-version standard-version semantic-release release-please changesets ferrflow; do
           if [[ "$rest" == "${t}-${method}-"* || "$rest" == "${t}-${method}" ]]; then
             TOOL_ROWS[$t]=1
             break
