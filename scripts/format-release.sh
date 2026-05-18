@@ -41,7 +41,7 @@ declare -A BENCH_DATA BENCH_MEM
 
 while IFS= read -r key; do
   fixture="" tool="" method="" cmd=""
-  for t in semantic-release release-please changesets ferrflow; do
+  for t in commit-and-tag-version standard-version semantic-release release-please changesets ferrflow; do
     if [[ "$key" == *"-${t}-"* ]]; then
       tool="$t"
       fixture="${key%%-"$t"-*}"

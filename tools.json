@@ -33,5 +33,23 @@
       }
     },
     "commands": [""]
+  },
+  "standard-version": {
+    "install_methods": {
+      "npm": {
+        "setup": "npm install -g standard-version",
+        "command": "npx --yes standard-version --dry-run"
+      }
+    },
+    "commands": [""]
+  },
+  "commit-and-tag-version": {
+    "install_methods": {
+      "npm": {
+        "setup": "npm install -g commit-and-tag-version",
+        "command": "npx --yes commit-and-tag-version --dry-run"
+      }
+    },
+    "commands": [""]
   }
 }
