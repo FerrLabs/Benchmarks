@@ -133,14 +133,31 @@ measure_memory() {
   fi
 }
 
-# Get binary size in MB
+# Get binary size in MB.
+#
+# Measures the stripped artifact size — even if the binary in PATH was
+# built with `[profile.release] strip = false` or wasn't stripped by the
+# packager, we strip a copy and measure that. This matches what users
+# actually download (release tarballs are stripped) instead of the
+# debug-symbol-bloated dev build (~13 MB vs ~6 MB on Linux x64).
+#
+# Falls back to raw `du` if `strip` isn't available on the runner.
 get_binary_size() {
   local path
   path=$(command -v "$1" 2>/dev/null || echo "")
-  if [[ -n "$path" && -f "$path" ]]; then
-    du -m "$path" | awk '{printf "%.1f", $1}'
-  else
+  if [[ -z "$path" || ! -f "$path" ]]; then
     echo "N/A"
+    return
+  fi
+  if command -v strip &>/dev/null; then
+    local tmp_bin
+    tmp_bin=$(mktemp)
+    cp "$path" "$tmp_bin"
+    strip "$tmp_bin" 2>/dev/null || true
+    du -m "$tmp_bin" | awk '{printf "%.1f", $1}'
+    rm -f "$tmp_bin"
+  else
+    du -m "$path" | awk '{printf "%.1f", $1}'
   fi
 }
 
