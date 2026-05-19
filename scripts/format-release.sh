@@ -29,9 +29,6 @@ if ! command -v jq &>/dev/null; then
   exit 1
 fi
 
-VERSION=$(jq -r '.ferrflow_version' "$LATEST")
-BINARY_SIZE=$(jq -r '.ferrflow_binary_size_mb' "$LATEST")
-
 echo "## Performance"
 echo ""
 
@@ -135,5 +132,3 @@ if [[ "$has_install_sizes" == "yes" ]]; then
   done < <(jq -r '.install_sizes | keys[]' "$LATEST" | sort)
   echo ""
 fi
-
-echo "*Binary size: ${BINARY_SIZE} MB — ferrflow ${VERSION}*"

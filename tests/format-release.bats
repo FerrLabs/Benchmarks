@@ -33,7 +33,7 @@ EOF
   [[ "$output" == *"12.4 MB"* ]]
 }
 
-@test "shows binary size and version in footer" {
+@test "does not emit redundant binary-size footer" {
   cat > "$TMPDIR/latest.json" <<'EOF'
 {
   "ferrflow_version": "2.5.0",
@@ -47,8 +47,13 @@ EOF
 
   run bash "$SCRIPT_DIR/format-release.sh" "$TMPDIR/latest.json"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"Binary size: 5.2 MB"* ]]
-  [[ "$output" == *"ferrflow 2.5.0"* ]]
+  # Footer removed: the bench artifact's ferrflow_version is captured BEFORE
+  # the release commit bumps the version, so it was always stale (e.g.
+  # 4.8.1 in a 4.9.0 release). Binary size from the CI build also overstates
+  # the real download. The Install footprint section is the canonical place
+  # for size now; the release page already shows the version in its title.
+  [[ "$output" != *"Binary size:"* ]]
+  [[ "$output" != *"ferrflow 2.5.0"* ]]
 }
 
 @test "shows delta percentages with baseline" {
@@ -151,7 +156,6 @@ EOF
   run bash "$SCRIPT_DIR/format-release.sh" "$TMPDIR/latest.json"
   [ "$status" -eq 0 ]
   [[ "$output" == *"## Performance"* ]]
-  [[ "$output" == *"Binary size: N/A MB"* ]]
 }
 
 @test "exits 1 with no arguments" {
