@@ -3,7 +3,9 @@
   "workspace": {
     "tagTemplate": "v{version}",
     "floatingTags": ["major"],
-    "skipCi": false
+    "skipCi": false,
+    "releaseCommitMode": "pr",
+    "autoMergeReleases": true
   },
   "package": [
     {
