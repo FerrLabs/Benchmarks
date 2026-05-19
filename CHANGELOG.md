@@ -4,6 +4,16 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [5.0.0] - 2026-05-19
+
+### Breaking Changes
+
+- feat!: ship v4 — install_sizes field, standard-version + commit-and-tag-version, drop footer
+
+### Bug Fixes
+
+- fix(release): switch to PR mode so branch-protected main accepts auto-releases (#120)
+
 ## [3.1.2] - 2026-04-22
 
 ### Bug Fixes
