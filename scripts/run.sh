@@ -371,18 +371,36 @@ for raw_file in "$RAW_DIR"/*.json; do
     '.[$k] = {median_ms: $median, stddev_ms: $stddev, memory_mb: $mem}')
 done
 
+INSTALL_SIZES_OBJ='{}'
+for size_file in "$RAW_DIR"/*-size.txt; do
+  [[ -f "$size_file" ]] || continue
+  bname=$(basename "$size_file" .txt)
+  if [[ "$bname" =~ ^(.+)-(npm|binary)-size$ ]]; then
+    tool="${BASH_REMATCH[1]}"
+    method="${BASH_REMATCH[2]}"
+    size_val=$(cat "$size_file")
+    INSTALL_SIZES_OBJ=$(echo "$INSTALL_SIZES_OBJ" | jq \
+      --arg t "$tool" \
+      --arg m "$method" \
+      --arg v "$size_val" \
+      '.[$t] = ((.[$t] // {}) + {($m): $v})')
+  fi
+done
+
 jq -n \
   --arg ts "$TIMESTAMP" \
   --arg ver "$FERRFLOW_VERSION" \
   --arg bin "$FERRFLOW_BIN_SIZE" \
   --arg npm "$FERRFLOW_NPM_SIZE" \
   --argjson benchmarks "$BENCHMARKS_OBJ" \
+  --argjson install_sizes "$INSTALL_SIZES_OBJ" \
   '{
     timestamp: $ts,
     ferrflow_version: $ver,
     ferrflow_binary_size_mb: $bin,
     ferrflow_npm_size_mb: $npm,
-    benchmarks: $benchmarks
+    benchmarks: $benchmarks,
+    install_sizes: $install_sizes
   }' > "$RESULTS_DIR/latest.json"
 
 echo "" >&2

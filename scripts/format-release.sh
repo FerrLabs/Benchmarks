@@ -119,4 +119,21 @@ for method in $(printf '%s\n' "${!ALL_METHODS[@]}" | sort); do
   echo ""
 done
 
+has_install_sizes=$(jq -r 'if has("install_sizes") and (.install_sizes | length > 0) then "yes" else "no" end' "$LATEST")
+if [[ "$has_install_sizes" == "yes" ]]; then
+  echo ""
+  echo "### Install footprint"
+  echo ""
+  echo "| Tool | npm | binary |"
+  echo "|------|-----|--------|"
+  while IFS= read -r tool; do
+    npm_size=$(jq -r --arg t "$tool" '.install_sizes[$t].npm // "—"' "$LATEST")
+    bin_size=$(jq -r --arg t "$tool" '.install_sizes[$t].binary // "—"' "$LATEST")
+    [[ "$npm_size" != "—" ]] && npm_size="${npm_size} MB"
+    [[ "$bin_size" != "—" ]] && bin_size="${bin_size} MB"
+    echo "| ${tool} | ${npm_size} | ${bin_size} |"
+  done < <(jq -r '.install_sizes | keys[]' "$LATEST" | sort)
+  echo ""
+fi
+
 echo "*Binary size: ${BINARY_SIZE} MB — ferrflow ${VERSION}*"
