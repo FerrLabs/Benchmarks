@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [5.0.1] - 2026-05-19
+
+### Bug Fixes
+
+- fix(run): strip binary before measuring size (#122)
+
 ## [5.0.0] - 2026-05-19
 
 ### Breaking Changes
