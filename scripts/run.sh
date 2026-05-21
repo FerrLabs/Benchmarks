@@ -68,16 +68,21 @@ write_tool_configs() {
     return
   fi
 
-  # Extract tool_configs.<tool> and write each file
-  local files
-  files=$(jq -r --arg t "$tool" '.tool_configs[$t] // {} | to_entries[] | "\(.key)\t\(.value)"' "$def_file" 2>/dev/null) || return 0
+  # Emit each entry as "<path>\t<base64-content>\n". Base64 collapses
+  # any multi-line content (e.g. changesets frontmatter with embedded
+  # newlines) into a single line so `read -r` captures it intact instead
+  # of stopping at the first \n.
+  local entries
+  entries=$(jq -r --arg t "$tool" \
+    '.tool_configs[$t] // {} | to_entries[] | "\(.key)\t" + (.value | @base64)' \
+    "$def_file" 2>/dev/null) || return 0
 
-  while IFS=$'\t' read -r path content; do
+  while IFS=$'\t' read -r path b64; do
     [[ -z "$path" ]] && continue
     local full_path="$target_dir/$path"
     mkdir -p "$(dirname "$full_path")"
-    echo "$content" > "$full_path"
-  done <<< "$files"
+    printf '%s' "$b64" | base64 -d > "$full_path"
+  done <<< "$entries"
 }
 
 # Auto-generate ferrflow config for bulk fixtures with empty config
