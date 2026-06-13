@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [5.0.3] - 2026-06-13
+
+### Bug Fixes
+
+- fix(action): pass untrusted inputs via env to prevent shell template injection (#135)
+
 ## [5.0.2] - 2026-05-22
 
 ### Bug Fixes
