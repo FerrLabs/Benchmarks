@@ -123,7 +123,7 @@ runs:
 
     - name: Download micro baseline
       if: (inputs.type == 'micro' || inputs.type == 'all') && github.event_name == 'pull_request' && steps.find-baseline.outputs.run_id
-      uses: actions/download-artifact@v8
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
       with:
         name: criterion-baseline
         path: baseline/
@@ -149,7 +149,7 @@ runs:
       # on regression alerts because matrixed jobs don't have permission to
       # post PR reviews.
       if: (inputs.type == 'micro' || inputs.type == 'all') && github.event_name == 'pull_request' && inputs.comment-on-pr == 'true'
-      uses: benchmark-action/github-action-benchmark@v1
+      uses: benchmark-action/github-action-benchmark@52576c92bccf6ac60c8223ec7eb2565637cae9ba # v1.22.1
       with:
         tool: cargo
         output-file-path: output.txt
@@ -162,7 +162,7 @@ runs:
 
     - name: Prepare micro baseline (main)
       if: (inputs.type == 'micro' || inputs.type == 'all') && github.event_name == 'push' && github.ref == 'refs/heads/main'
-      uses: benchmark-action/github-action-benchmark@v1
+      uses: benchmark-action/github-action-benchmark@52576c92bccf6ac60c8223ec7eb2565637cae9ba # v1.22.1
       with:
         tool: cargo
         output-file-path: output.txt
@@ -171,7 +171,7 @@ runs:
 
     - name: Upload micro baseline
       if: (inputs.type == 'micro' || inputs.type == 'all') && github.event_name == 'push' && github.ref == 'refs/heads/main'
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
         name: criterion-baseline
         path: baseline/benchmark-data.json
@@ -203,7 +203,7 @@ runs:
 
     - name: Generate benchmark fixtures
       if: inputs.type == 'full' || inputs.type == 'all'
-      uses: FerrLabs/Fixtures@v1
+      uses: FerrLabs/Fixtures@7db03266c337749bef6f0d5c1e956b112b337b9c # v1.0.2
       with:
         definitions: ${{ inputs.definitions }}
         generated-dir: /tmp/bench-fixtures
@@ -228,7 +228,7 @@ runs:
 
     - name: Download full baseline
       if: inputs.type == 'full' || inputs.type == 'all'
-      uses: actions/download-artifact@v8
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
       with:
         name: hyperfine-baseline
         path: benchmarks/results/
@@ -259,7 +259,7 @@ runs:
 
     - name: Post full benchmark results as PR comment
       if: (inputs.type == 'full' || inputs.type == 'all') && github.event_name == 'pull_request' && inputs.comment-on-pr == 'true'
-      uses: actions/github-script@v9
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
       with:
         github-token: ${{ inputs.ferrflow-token }}
         script: |
@@ -299,7 +299,7 @@ runs:
 
     - name: Upload full baseline
       if: (inputs.type == 'full' || inputs.type == 'all') && github.event_name == 'push' && github.ref == 'refs/heads/main'
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
         name: hyperfine-baseline
         path: benchmarks/results/latest.json
@@ -324,7 +324,7 @@ runs:
 
     - name: Upload release summary
       if: (inputs.type == 'full' || inputs.type == 'all') && github.event_name == 'push' && github.ref == 'refs/heads/main'
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
         name: benchmark-release-summary
         path: benchmarks/results/release-summary.md
