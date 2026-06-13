@@ -95,6 +95,14 @@ for method in $(printf '%s\n' "${!ALL_METHODS[@]}" | sort); do
   echo "$header"
   echo "$separator"
 
+  # Track tools that produced data in this method's section so we can
+  # add a transparency note when only ferrflow has rows (typical for
+  # `binary` and `docker`, since every competitor is a Node package
+  # with no native binary or first-party Docker image to compare
+  # against). Otherwise the empty sections look like a competitor's
+  # data was lost or filtered out, when in reality there's nothing to
+  # measure.
+  declare -A METHOD_TOOLS_WITH_DATA=()
   for fixture in "${FIXTURE_LIST[@]}"; do
     for tool in $(printf '%s\n' "${!ALL_TOOLS[@]}" | sort); do
       has_data=false
@@ -110,9 +118,29 @@ for method in $(printf '%s\n' "${!ALL_METHODS[@]}" | sort); do
       done
       mem="${BENCH_MEM["${fixture}|${tool}|${method}"]:-N/A}"
       row="$row $mem |"
-      $has_data && echo "$row"
+      if $has_data; then
+        echo "$row"
+        METHOD_TOOLS_WITH_DATA[$tool]=1
+      fi
     done
   done
+
+  case "$method" in
+    binary)
+      if [[ ${#METHOD_TOOLS_WITH_DATA[@]} -le 1 ]]; then
+        echo ""
+        echo "_Note: every competitor is a Node.js package — none ship a native binary, so this section can only show \`ferrflow\`. Cross-tool comparisons live in the **Npm** section._"
+      fi
+      ;;
+    docker)
+      if [[ ${#METHOD_TOOLS_WITH_DATA[@]} -le 1 ]]; then
+        echo ""
+        echo "_Note: no competitor publishes a first-party Docker image that is comparable to \`ghcr.io/ferrlabs/ferrflow\` (a single static binary). Wrapping the Node tools in \`node:lts\` would only re-time \`node startup + npm + the tool\` already measured in the **Npm** section, so this section is intentionally limited to \`ferrflow\`._"
+      fi
+      ;;
+  esac
+
+  unset METHOD_TOOLS_WITH_DATA
   echo ""
 done
 

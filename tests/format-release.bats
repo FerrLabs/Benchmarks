@@ -102,6 +102,61 @@ EOF
   [[ "$output" == *"### Npm"* ]]
 }
 
+@test "adds explanatory note when only ferrflow has Binary data" {
+  cat > "$TMPDIR/latest.json" <<'EOF'
+{
+  "ferrflow_version": "2.5.0",
+  "ferrflow_binary_size_mb": "5.2",
+  "ferrflow_npm_size_mb": "N/A",
+  "benchmarks": {
+    "single-ferrflow-binary-check": {"median_ms": 14.7, "stddev_ms": 0.5, "memory_mb": "12.4"}
+  }
+}
+EOF
+
+  run bash "$SCRIPT_DIR/format-release.sh" "$TMPDIR/latest.json"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"### Binary"* ]]
+  [[ "$output" == *"every competitor is a Node.js package"* ]]
+}
+
+@test "adds explanatory note when only ferrflow has Docker data" {
+  cat > "$TMPDIR/latest.json" <<'EOF'
+{
+  "ferrflow_version": "2.5.0",
+  "ferrflow_binary_size_mb": "5.2",
+  "ferrflow_npm_size_mb": "N/A",
+  "benchmarks": {
+    "single-ferrflow-docker-check": {"median_ms": 184.5, "stddev_ms": 3.1, "memory_mb": "46.5"}
+  }
+}
+EOF
+
+  run bash "$SCRIPT_DIR/format-release.sh" "$TMPDIR/latest.json"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"### Docker"* ]]
+  [[ "$output" == *"no competitor publishes a first-party Docker image"* ]]
+}
+
+@test "does not add the note when a competitor also has binary data" {
+  cat > "$TMPDIR/latest.json" <<'EOF'
+{
+  "ferrflow_version": "2.5.0",
+  "ferrflow_binary_size_mb": "5.2",
+  "ferrflow_npm_size_mb": "N/A",
+  "benchmarks": {
+    "single-ferrflow-binary-check": {"median_ms": 14.7, "stddev_ms": 0.5, "memory_mb": "12.4"},
+    "single-changesets-binary-check": {"median_ms": 50.0, "stddev_ms": 1.0, "memory_mb": "20.0"}
+  }
+}
+EOF
+
+  run bash "$SCRIPT_DIR/format-release.sh" "$TMPDIR/latest.json"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"### Binary"* ]]
+  [[ "$output" != *"every competitor is a Node.js package"* ]]
+}
+
 @test "renders install footprint when install_sizes present" {
   cat > "$TMPDIR/latest.json" <<'EOF'
 {
