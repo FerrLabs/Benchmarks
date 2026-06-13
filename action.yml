@@ -85,9 +85,10 @@ runs:
       # every real benchmark completed. Tolerate both: capture stderr
       # separately, let the pipe return the bench exit code, and only fail
       # the step if NO well-formed rows got captured.
+      env:
+        GROUP_FILTER: ${{ inputs.group-filter }}
       run: |
         set +e
-        GROUP_FILTER="${{ inputs.group-filter }}"
         BENCH_ARGS=(--bench ferrflow_benchmarks -- --output-format bencher)
         if [ -n "$GROUP_FILTER" ]; then
           # criterion takes the filter as a positional arg, not --filter
@@ -213,18 +214,24 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.ferrflow-token }}
+        DEFINITIONS: ${{ inputs.definitions }}
+        WARMUP: ${{ inputs.warmup }}
+        RUNS: ${{ inputs.runs }}
+        SKIP_COMPETITORS: ${{ inputs.skip-competitors }}
+        VERBOSE: ${{ inputs.verbose }}
+        ACTION_PATH: ${{ github.action_path }}
       run: |
         mkdir -p benchmarks/results
-        ARGS="--fixtures-dir /tmp/bench-fixtures --results-dir benchmarks/results"
-        ARGS="$ARGS --definitions-dir ${{ inputs.definitions }}"
-        ARGS="$ARGS --warmup ${{ inputs.warmup }} --runs ${{ inputs.runs }}"
-        if [[ "${{ inputs.skip-competitors }}" == "true" ]]; then
-          ARGS="$ARGS --skip-competitors"
+        ARGS=(--fixtures-dir /tmp/bench-fixtures --results-dir benchmarks/results)
+        ARGS+=(--definitions-dir "$DEFINITIONS")
+        ARGS+=(--warmup "$WARMUP" --runs "$RUNS")
+        if [[ "$SKIP_COMPETITORS" == "true" ]]; then
+          ARGS+=(--skip-competitors)
         fi
-        if [[ "${{ inputs.verbose }}" == "true" ]]; then
-          ARGS="$ARGS --verbose"
+        if [[ "$VERBOSE" == "true" ]]; then
+          ARGS+=(--verbose)
         fi
-        bash ${{ github.action_path }}/scripts/run.sh $ARGS | tee benchmarks/results/summary.md
+        bash "$ACTION_PATH/scripts/run.sh" "${ARGS[@]}" | tee benchmarks/results/summary.md
 
     - name: Download full baseline
       if: inputs.type == 'full' || inputs.type == 'all'
@@ -238,11 +245,13 @@ runs:
       if: inputs.type == 'full' || inputs.type == 'all'
       id: compare
       shell: bash
+      env:
+        FULL_REGRESSION_THRESHOLD: ${{ inputs.full-regression-threshold }}
+        BINARY_SIZE_THRESHOLD: ${{ inputs.binary-size-threshold }}
+        ACTION_PATH: ${{ github.action_path }}
       run: |
         set +e
-        output=$(FULL_REGRESSION_THRESHOLD="${{ inputs.full-regression-threshold }}" \
-                 BINARY_SIZE_THRESHOLD="${{ inputs.binary-size-threshold }}" \
-                 bash ${{ github.action_path }}/scripts/compare.sh benchmarks/results/baseline.json benchmarks/results/latest.json 2>&1)
+        output=$(bash "$ACTION_PATH/scripts/compare.sh" benchmarks/results/baseline.json benchmarks/results/latest.json 2>&1)
         exit_code=$?
         set -e
         echo "$output"
