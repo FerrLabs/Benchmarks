@@ -113,6 +113,12 @@ prepare_ferrflow_fixture() {
 }
 
 # Set up a dummy bare remote for tools that require one (semantic-release, etc.)
+#
+# semantic-release does `git fetch --tags origin` very early in its
+# planning phase. If the remote has no tags it exits 128 and we report
+# SKIP for the whole fixture, which is how it ended up missing from the
+# perf comparison table. Push HEAD AND tags so any fixture-defined
+# baseline tag (e.g. "v1.0.0") is visible to the tool.
 setup_dummy_remote() {
   local dir="$1"
   local bare_dir="$2"
@@ -121,6 +127,7 @@ setup_dummy_remote() {
   git -C "$bare_dir" init --bare -q 2>/dev/null
   git -C "$dir" remote add origin "$bare_dir" 2>/dev/null || true
   git -C "$dir" push -q origin HEAD 2>/dev/null || true
+  git -C "$dir" push -q origin --tags 2>/dev/null || true
 }
 
 # Measure peak RSS in MB (Linux only)
