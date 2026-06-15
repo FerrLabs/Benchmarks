@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [5.0.5] - 2026-06-15
+
+### Bug Fixes
+
+- perf(bench): lower default warmup from 3 to 2 (~10% wall-time saving) (#140)
+
 ## [5.0.4] - 2026-06-15
 
 ### Bug Fixes
