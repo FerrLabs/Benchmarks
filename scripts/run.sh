@@ -18,7 +18,7 @@ RAW_DIR=""
 OUTPUT_FORMAT="markdown"
 SKIP_COMPETITORS=false
 VERBOSE="${VERBOSE:-false}"
-WARMUP=3
+WARMUP=2
 RUNS=10
 
 while [[ $# -gt 0 ]]; do
