@@ -184,8 +184,9 @@ runs:
     # ------------------------------------------------------------------
     - name: Install hyperfine
       if: inputs.type == 'full' || inputs.type == 'all'
-      shell: bash
-      run: cargo install hyperfine
+      uses: taiki-e/install-action@7a79fe8c3a13344501c80d99cae481c1c9085912 # v2.81.10
+      with:
+        tool: hyperfine
 
     - name: Install jq
       if: inputs.type == 'full' || inputs.type == 'all'
