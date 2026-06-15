@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [5.0.6] - 2026-06-15
+
+### Bug Fixes
+
+- fix(run): push tags to dummy remote so semantic-release stops failing (#141)
+
 ## [5.0.5] - 2026-06-15
 
 ### Bug Fixes
