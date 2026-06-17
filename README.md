@@ -50,7 +50,7 @@ Runs criterion benchmarks (`cargo bench`) and compares against a stored baseline
 
 Runs end-to-end benchmarks with [hyperfine](https://github.com/sharkdp/hyperfine) across multiple fixture sizes (single repo, mono-small, mono-medium, mono-large). Optionally compares against competitor tools (semantic-release, changesets, release-please).
 
-- Generates fixtures using `cargo run --release --bin generate-fixtures`
+- Generates fixtures via the [`FerrLabs/Fixtures`](https://github.com/FerrLabs/Fixtures) action from the JSON `definitions` directory you pass
 - Measures execution time, memory usage, and binary size
 - Compares against stored baseline and detects regressions (configurable threshold, default 25%)
 
@@ -62,4 +62,5 @@ The calling workflow must provide:
 - Rust cache (`Swatinem/rust-cache@v2`)
 - Node.js (for full benchmarks with competitors): `actions/setup-node@v6`
 - A project with `cargo bench --bench ferrflow_benchmarks` (for micro)
-- A project with `cargo run --release --bin generate-fixtures` (for full)
+- A directory of JSON fixture definitions, passed via the `definitions` input — the action generates the fixtures with [`FerrLabs/Fixtures`](https://github.com/FerrLabs/Fixtures) (for full)
+- A project that builds a release binary with `cargo build --release` — the action puts `target/release` on `PATH` and benchmarks it (for full)

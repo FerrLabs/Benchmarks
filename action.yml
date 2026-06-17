@@ -44,7 +44,7 @@ inputs:
     required: false
     default: '10'
   definitions:
-    description: 'Path to TOML definitions for benchmark fixture generation'
+    description: 'Path to the directory of JSON fixture definitions for benchmark fixture generation'
     required: true
   verbose:
     description: 'Show full error output when a benchmark command fails validation'
