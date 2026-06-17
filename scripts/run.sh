@@ -327,6 +327,15 @@ for tool in $TOOLS; do
           cmd_name=$(echo "$cmd" | sed 's/ --/-/g; s/ /-/g; s/--/-/g')
         fi
 
+        # Competitors are single-threaded; pin ferrflow to one thread so the
+        # comparison is reproducible and apples-to-apples. par_cmd keeps the
+        # all-cores variant for the separate parallel stat.
+        par_cmd=""
+        if [[ "$tool" == "ferrflow" ]]; then
+          par_cmd="$full_cmd"
+          full_cmd="$tool_cmd --jobs 1 $cmd"
+        fi
+
         label="${tool}/${method}"
         raw_file="$RAW_DIR/${fixture}-${tool}-${method}-${cmd_name}.json"
 
@@ -360,6 +369,17 @@ for tool in $TOOLS; do
         # shellcheck disable=SC2086
         mem=$(cd "$tmp_dir" && measure_memory $full_cmd 2>/dev/null || echo "N/A")
         echo "$mem" > "$RAW_DIR/${fixture}-${tool}-${method}-${cmd_name}.mem"
+
+        if [[ -n "$par_cmd" ]]; then
+          mkdir -p "$RAW_DIR/parallel"
+          hyperfine \
+            --warmup "$WARMUP" \
+            --runs "$RUNS" \
+            --export-json "$RAW_DIR/parallel/${fixture}-${cmd_name}.json" \
+            --shell=bash \
+            "cd $tmp_dir && $par_cmd >/dev/null 2>&1" \
+            2>/dev/null
+        fi
       done
 
       rm -rf "$tmp_dir" "${bare_remote:-}"
@@ -400,6 +420,21 @@ for raw_file in "$RAW_DIR"/*.json; do
     '.[$k] = {median_ms: $median, stddev_ms: $stddev, memory_mb: $mem}')
 done
 
+RUNNER_CORES=$(nproc 2>/dev/null || echo 1)
+
+FERRFLOW_PARALLEL_OBJ='{}'
+for raw_file in "$RAW_DIR"/parallel/*.json; do
+  [[ -f "$raw_file" ]] || continue
+  bname=$(basename "$raw_file" .json)
+  median=$(extract_median "$raw_file" 2>/dev/null || echo "0")
+  stddev=$(extract_stddev "$raw_file" 2>/dev/null || echo "0")
+  FERRFLOW_PARALLEL_OBJ=$(echo "$FERRFLOW_PARALLEL_OBJ" | jq \
+    --arg k "$bname" \
+    --argjson median "$median" \
+    --argjson stddev "$stddev" \
+    '.[$k] = {median_ms: $median, stddev_ms: $stddev}')
+done
+
 INSTALL_SIZES_OBJ='{}'
 for size_file in "$RAW_DIR"/*-size.txt; do
   [[ -f "$size_file" ]] || continue
@@ -421,14 +456,18 @@ jq -n \
   --arg ver "$FERRFLOW_VERSION" \
   --arg bin "$FERRFLOW_BIN_SIZE" \
   --arg npm "$FERRFLOW_NPM_SIZE" \
+  --argjson cores "$RUNNER_CORES" \
   --argjson benchmarks "$BENCHMARKS_OBJ" \
+  --argjson ferrflow_parallel "$FERRFLOW_PARALLEL_OBJ" \
   --argjson install_sizes "$INSTALL_SIZES_OBJ" \
   '{
     timestamp: $ts,
     ferrflow_version: $ver,
     ferrflow_binary_size_mb: $bin,
     ferrflow_npm_size_mb: $npm,
+    runner_cores: $cores,
     benchmarks: $benchmarks,
+    ferrflow_parallel: $ferrflow_parallel,
     install_sizes: $install_sizes
   }' > "$RESULTS_DIR/latest.json"
 
