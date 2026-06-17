@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [5.1.0] - 2026-06-17
+
+### Features
+
+- feat(bench): pin ferrflow to single thread + report parallel stat with runner cores (#145)
+
 ## [5.0.6] - 2026-06-15
 
 ### Bug Fixes
