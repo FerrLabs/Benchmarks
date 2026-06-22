@@ -189,7 +189,7 @@ runs:
     # ------------------------------------------------------------------
     - name: Install hyperfine
       if: inputs.type == 'full' || inputs.type == 'all'
-      uses: taiki-e/install-action@7a79fe8c3a13344501c80d99cae481c1c9085912 # v2.81.10
+      uses: taiki-e/install-action@b8cecb83565409bcc297b2df6e77f030b2a468d5 # v2.82.0
       with:
         tool: hyperfine
 
@@ -210,7 +210,7 @@ runs:
 
     - name: Generate benchmark fixtures
       if: inputs.type == 'full' || inputs.type == 'all'
-      uses: FerrLabs/Fixtures@7db03266c337749bef6f0d5c1e956b112b337b9c # v1.0.2
+      uses: FerrLabs/Fixtures@7c4919f7db721c94fe8a91558a86759f4b63b004 # v1.0.5
       with:
         definitions: ${{ inputs.definitions }}
         generated-dir: /tmp/bench-fixtures
