@@ -145,32 +145,22 @@ measure_memory() {
   fi
 }
 
-# Get binary size in MB.
-#
-# Measures the stripped artifact size — even if the binary in PATH was
-# built with `[profile.release] strip = false` or wasn't stripped by the
-# packager, we strip a copy and measure that. This matches what users
-# actually download (release tarballs are stripped) instead of the
-# debug-symbol-bloated dev build (~13 MB vs ~6 MB on Linux x64).
-#
-# Falls back to raw `du` if `strip` isn't available on the runner.
-get_binary_size() {
-  local path
-  path=$(command -v "$1" 2>/dev/null || echo "")
-  if [[ -z "$path" || ! -f "$path" ]]; then
-    echo "N/A"
-    return
-  fi
-  if command -v strip &>/dev/null; then
-    local tmp_bin
-    tmp_bin=$(mktemp)
-    cp "$path" "$tmp_bin"
-    strip "$tmp_bin" 2>/dev/null || true
-    du -m "$tmp_bin" | awk '{printf "%.1f", $1}'
-    rm -f "$tmp_bin"
+get_npm_binary_size() {
+  local pkg="$1"
+  local tmp_dir bin
+  tmp_dir=$(mktemp -d)
+  (
+    cd "$tmp_dir"
+    npm init -y &>/dev/null
+    npm install --save "$pkg" &>/dev/null 2>&1
+  )
+  bin=$(find "$tmp_dir/node_modules" -type f -path "*/@$pkg/*/bin/$pkg" 2>/dev/null | head -1)
+  if [[ -n "$bin" && -f "$bin" ]]; then
+    du -m "$bin" | awk '{printf "%.1f", $1}'
   else
-    du -m "$path" | awk '{printf "%.1f", $1}'
+    echo "N/A"
   fi
+  rm -rf "$tmp_dir"
 }
 
 # Get npm package install size in MB
@@ -275,7 +265,7 @@ for tool in $TOOLS; do
       echo "$npm_size" > "$RAW_DIR/${tool}-npm-size.txt"
     fi
     if [[ "$method" == "binary" && "$tool" == "ferrflow" ]]; then
-      bin_size=$(get_binary_size ferrflow)
+      bin_size=$(get_npm_binary_size ferrflow)
       echo "$bin_size" > "$RAW_DIR/ferrflow-binary-size.txt"
     fi
 
