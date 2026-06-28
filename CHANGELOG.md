@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [5.1.1] - 2026-06-28
+
+### Bug Fixes
+
+- fix(bench): measure native-binary size from the published npm artifact (#150)
+
 ## [5.1.0] - 2026-06-17
 
 ### Features
