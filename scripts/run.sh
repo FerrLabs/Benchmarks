@@ -319,10 +319,15 @@ for tool in $TOOLS; do
 
         # Competitors are single-threaded; pin ferrflow to one thread so the
         # comparison is reproducible and apples-to-apples. par_cmd keeps the
-        # all-cores variant for the separate parallel stat.
+        # all-cores variant for the separate parallel stat — binary method
+        # only, since the parallel result file is not method-scoped and the
+        # npm (npx) and docker methods would overwrite it with node/container
+        # startup overhead instead of the binary's all-cores time.
         par_cmd=""
         if [[ "$tool" == "ferrflow" ]]; then
-          par_cmd="$full_cmd"
+          if [[ "$method" == "binary" ]]; then
+            par_cmd="$full_cmd"
+          fi
           full_cmd="$tool_cmd --jobs 1 $cmd"
         fi
 
