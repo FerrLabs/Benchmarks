@@ -17,7 +17,7 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - name: ShellCheck
         run: shellcheck scripts/*.sh
 
@@ -25,7 +25,7 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - name: Install bats
         run: sudo apt-get install -y bats
       - name: Run tests
@@ -45,7 +45,7 @@ jobs:
     outputs:
       tag: ${{ steps.detect-tag.outputs.tag }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 0
           # FerrFlow runs with bot: true — it pushes via an App installation
@@ -56,7 +56,7 @@ jobs:
       - name: Record previous tag
         id: prev-tag
         run: echo "tag=$(git describe --tags --abbrev=0 2>/dev/null || echo '')" >> "$GITHUB_OUTPUT"
-      - uses: FerrLabs/FerrFlow@v5
+      - uses: FerrLabs/FerrFlow@ce419aeddfcc21884391320fee45a715161e6624 # v5
         with:
           bot: true
           dry_run: ${{ inputs.dry_run }}
@@ -75,13 +75,13 @@ jobs:
     runs-on: ubuntu-latest
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           repository: FerrLabs/FerrFlow
           path: ferrflow-src
-      - uses: dtolnay/rust-toolchain@nightly
-      - uses: Swatinem/rust-cache@v2
+      - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae # nightly
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
         with:
           workspaces: ferrflow-src
       - name: Install hyperfine and jq
@@ -95,7 +95,7 @@ jobs:
       - name: Add ferrflow to PATH
         run: echo "${{ github.workspace }}/ferrflow-src/target/release" >> "$GITHUB_PATH"
       - name: Generate benchmark fixtures
-        uses: FerrLabs/Fixtures@v1
+        uses: FerrLabs/Fixtures@7db03266c337749bef6f0d5c1e956b112b337b9c # v1
         with:
           definitions: ferrflow-src/benchmarks/fixtures/definitions
           generated-dir: /tmp/bench-fixtures
@@ -109,7 +109,7 @@ jobs:
       - name: Step summary
         run: bash scripts/format-release.sh /tmp/bench-results/latest.json >> "$GITHUB_STEP_SUMMARY"
       - name: Upload results
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: benchmark-results
           path: /tmp/bench-results/latest.json
@@ -123,8 +123,8 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/download-artifact@v8
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: benchmark-results
           path: /tmp/bench-results
