@@ -95,7 +95,7 @@ jobs:
       - name: Add ferrflow to PATH
         run: echo "${{ github.workspace }}/ferrflow-src/target/release" >> "$GITHUB_PATH"
       - name: Generate benchmark fixtures
-        uses: FerrLabs/Fixtures@7db03266c337749bef6f0d5c1e956b112b337b9c # v1
+        uses: FerrLabs/Fixtures@3d9971a22666f2d5d262d5a308920af191e16a4a # v1.1.1
         with:
           definitions: ferrflow-src/benchmarks/fixtures/definitions
           generated-dir: /tmp/bench-fixtures
