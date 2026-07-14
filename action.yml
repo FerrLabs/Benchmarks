@@ -210,7 +210,7 @@ runs:
 
     - name: Generate benchmark fixtures
       if: inputs.type == 'full' || inputs.type == 'all'
-      uses: FerrLabs/Fixtures@7c4919f7db721c94fe8a91558a86759f4b63b004 # v1.0.5
+      uses: FerrLabs/Fixtures@3d9971a22666f2d5d262d5a308920af191e16a4a # v1.1.1
       with:
         definitions: ${{ inputs.definitions }}
         generated-dir: /tmp/bench-fixtures
