@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [5.3.2] - 2026-07-15
+
+### Bug Fixes
+
+- fix(bench): measure ferrflow cold, report the cache separately (#170)
+
 ## [5.3.1] - 2026-07-15
 
 ### Bug Fixes
