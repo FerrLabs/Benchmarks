@@ -31,6 +31,27 @@ Reusable GitHub Action for running FerrFlow benchmarks and detecting performance
 | `ferrflow-token` | GitHub token for PR comments and artifact access | required |
 | `group-filter` | Criterion bench group filter (substring) for micro matrix sharding | `''` |
 | `binary-dir` | Directory holding a prebuilt `ferrflow` executable. When set, the full benchmark skips its own `cargo build --release` and puts this directory on PATH | `''` |
+| `fixtures-dir` | Directory of already-generated fixtures. When set, the full benchmark skips its own generation | `''` |
+| `shard` | Run as a matrix shard: benchmark and write `latest.json`, skip baseline/compare/comment/uploads | `false` |
+| `merge-partials` | Directory of partial `latest.json` files. When set, skip building and benchmarking; merge the partials, then compare and upload over the merged result | `''` |
+
+### Sharding the full benchmark
+
+The full benchmark runs every fixture sequentially, so wall-clock is the sum of
+them all. To spread it over runners, generate the fixtures once, run one shard
+per fixture, then aggregate:
+
+1. **Shards** — one job per fixture, each with `shard: true`, a `fixtures-dir`
+   holding only its own fixture, and `binary-dir` pointing at a prebuilt
+   binary. Each uploads its `benchmarks/results/latest.json` as a partial.
+2. **Aggregate** — one job that downloads every partial into a directory and
+   passes it as `merge-partials`. It merges them and runs the regression check,
+   PR comment and uploads once, over the whole result.
+
+Shard per **fixture**, never per tool: the comparison ferrflow-vs-competitors
+only means something when both ran on the same machine. Per-fixture shards keep
+each comparison inside one runner; only absolute numbers *between* fixtures come
+from different hardware.
 
 ## Outputs
 
