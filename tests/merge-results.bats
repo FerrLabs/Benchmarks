@@ -36,8 +36,9 @@ EOF
   [ "$status" -eq 0 ]
 
   [ "$(jq '.benchmarks | length' "$TMPDIR/latest.json")" -eq 2 ]
-  [ "$(jq -r '.benchmarks["single-ferrflow-binary-check"].median_ms' "$TMPDIR/latest.json")" = "10" ]
-  [ "$(jq -r '.benchmarks["complex-ferrflow-binary-check"].median_ms' "$TMPDIR/latest.json")" = "42" ]
+  # Compare numerically: jq versions differ on whether 10.0 prints as "10".
+  [ "$(jq '.benchmarks["single-ferrflow-binary-check"].median_ms == 10' "$TMPDIR/latest.json")" = "true" ]
+  [ "$(jq '.benchmarks["complex-ferrflow-binary-check"].median_ms == 42' "$TMPDIR/latest.json")" = "true" ]
 }
 
 @test "keeps run-level metadata" {
