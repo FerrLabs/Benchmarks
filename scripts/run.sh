@@ -331,6 +331,24 @@ for tool in $TOOLS; do
           full_cmd="$tool_cmd --jobs 1 $cmd"
         fi
 
+        # `ferrflow check` memoises its result under .git/ferrflow-cache (5 min
+        # TTL, keyed by HEAD+tags+config). The fixture never changes between
+        # runs, so without intervention hyperfine's warmup primes the cache and
+        # every timed run is a hit — the headline then reads a near-constant few
+        # ms whatever the history size, which is the cache, not the work. No
+        # competitor has an equivalent, so the comparable number is the cold
+        # one: drop the cache before each timed run. The warm number is worth
+        # publishing too, but as its own stat (see cache_cmd below), never as
+        # the head-to-head — same rule as --jobs 1 for the parallel stat.
+        prepare_args=()
+        cache_cmd=""
+        if [[ "$tool" == "ferrflow" ]]; then
+          prepare_args=(--prepare "rm -rf $tmp_dir/.git/ferrflow-cache")
+          if [[ "$method" == "binary" && "$cmd_name" == "check" ]]; then
+            cache_cmd="$full_cmd"
+          fi
+        fi
+
         label="${tool}/${method}"
         raw_file="$RAW_DIR/${fixture}-${tool}-${method}-${cmd_name}.json"
 
@@ -355,6 +373,7 @@ for tool in $TOOLS; do
         hyperfine \
           --warmup "$WARMUP" \
           --runs "$RUNS" \
+          "${prepare_args[@]}" \
           --export-json "$raw_file" \
           --shell=bash \
           "cd $tmp_dir && $full_cmd >/dev/null 2>&1" \
@@ -370,9 +389,23 @@ for tool in $TOOLS; do
           hyperfine \
             --warmup "$WARMUP" \
             --runs "$RUNS" \
+            --prepare "rm -rf $tmp_dir/.git/ferrflow-cache" \
             --export-json "$RAW_DIR/parallel/${fixture}-${cmd_name}.json" \
             --shell=bash \
             "cd $tmp_dir && $par_cmd >/dev/null 2>&1" \
+            2>/dev/null
+        fi
+
+        # Warm-cache stat: no --prepare, so the warmup primes the cache and the
+        # timed runs measure a hit. Deliberately kept out of `benchmarks`.
+        if [[ -n "$cache_cmd" ]]; then
+          mkdir -p "$RAW_DIR/cached"
+          hyperfine \
+            --warmup "$WARMUP" \
+            --runs "$RUNS" \
+            --export-json "$RAW_DIR/cached/${fixture}-${cmd_name}.json" \
+            --shell=bash \
+            "cd $tmp_dir && $cache_cmd >/dev/null 2>&1" \
             2>/dev/null
         fi
       done
@@ -430,6 +463,19 @@ for raw_file in "$RAW_DIR"/parallel/*.json; do
     '.[$k] = {median_ms: $median, stddev_ms: $stddev}')
 done
 
+FERRFLOW_CACHED_OBJ='{}'
+for raw_file in "$RAW_DIR"/cached/*.json; do
+  [[ -f "$raw_file" ]] || continue
+  bname=$(basename "$raw_file" .json)
+  median=$(extract_median "$raw_file" 2>/dev/null || echo "0")
+  stddev=$(extract_stddev "$raw_file" 2>/dev/null || echo "0")
+  FERRFLOW_CACHED_OBJ=$(echo "$FERRFLOW_CACHED_OBJ" | jq \
+    --arg k "$bname" \
+    --argjson median "$median" \
+    --argjson stddev "$stddev" \
+    '.[$k] = {median_ms: $median, stddev_ms: $stddev}')
+done
+
 INSTALL_SIZES_OBJ='{}'
 for size_file in "$RAW_DIR"/*-size.txt; do
   [[ -f "$size_file" ]] || continue
@@ -452,8 +498,11 @@ jq -n \
   --arg bin "$FERRFLOW_BIN_SIZE" \
   --arg npm "$FERRFLOW_NPM_SIZE" \
   --argjson cores "$RUNNER_CORES" \
+  --argjson warmup "$WARMUP" \
+  --argjson runs "$RUNS" \
   --argjson benchmarks "$BENCHMARKS_OBJ" \
   --argjson ferrflow_parallel "$FERRFLOW_PARALLEL_OBJ" \
+  --argjson ferrflow_cached "$FERRFLOW_CACHED_OBJ" \
   --argjson install_sizes "$INSTALL_SIZES_OBJ" \
   '{
     timestamp: $ts,
@@ -461,8 +510,11 @@ jq -n \
     ferrflow_binary_size_mb: $bin,
     ferrflow_npm_size_mb: $npm,
     runner_cores: $cores,
+    warmup: $warmup,
+    runs: $runs,
     benchmarks: $benchmarks,
     ferrflow_parallel: $ferrflow_parallel,
+    ferrflow_cached: $ferrflow_cached,
     install_sizes: $install_sizes
   }' > "$RESULTS_DIR/latest.json"
 
