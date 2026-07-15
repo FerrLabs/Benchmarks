@@ -57,6 +57,10 @@ inputs:
     description: 'Optional criterion bench group filter (substring). If set, only benches matching this are run. Use for matrix sharding.'
     required: false
     default: ''
+  binary-dir:
+    description: 'Directory holding a prebuilt `ferrflow` executable. When set, the full benchmark skips its own `cargo build --release` and puts this directory on PATH instead. Point it at a downloaded build artifact to avoid recompiling a binary the caller already produced.'
+    required: false
+    default: ''
 
 outputs:
   regression-detected:
@@ -199,14 +203,27 @@ runs:
       run: sudo apt-get install -y jq
 
     - name: Build project
-      if: inputs.type == 'full' || inputs.type == 'all'
+      if: (inputs.type == 'full' || inputs.type == 'all') && inputs.binary-dir == ''
       shell: bash
       run: cargo build --release
 
     - name: Add binary to PATH
       if: inputs.type == 'full' || inputs.type == 'all'
       shell: bash
-      run: echo "$PWD/target/release" >> $GITHUB_PATH
+      env:
+        BINARY_DIR: ${{ inputs.binary-dir }}
+      run: |
+        if [[ -n "$BINARY_DIR" ]]; then
+          dir=$(cd "$BINARY_DIR" && pwd)
+          if [[ ! -x "$dir/ferrflow" ]]; then
+            echo "::error::binary-dir '$BINARY_DIR' has no executable 'ferrflow'"
+            ls -la "$dir" || true
+            exit 1
+          fi
+        else
+          dir="$PWD/target/release"
+        fi
+        echo "$dir" >> "$GITHUB_PATH"
 
     - name: Generate benchmark fixtures
       if: inputs.type == 'full' || inputs.type == 'all'
