@@ -202,6 +202,25 @@ runs:
       shell: bash
       run: sudo apt-get install -y jq
 
+    # Stage the caller's binary where a local build would have produced it, so
+    # the PATH entry below stays a constant. Feeding an input into GITHUB_PATH
+    # would let a caller inject an arbitrary PATH entry into this action.
+    - name: Stage prebuilt binary
+      if: (inputs.type == 'full' || inputs.type == 'all') && inputs.binary-dir != ''
+      shell: bash
+      env:
+        BINARY_DIR: ${{ inputs.binary-dir }}
+      run: |
+        if [[ ! -f "$BINARY_DIR/ferrflow" ]]; then
+          echo "::error::binary-dir '$BINARY_DIR' has no 'ferrflow' binary"
+          ls -la "$BINARY_DIR" || true
+          exit 1
+        fi
+        mkdir -p target/release
+        cp "$BINARY_DIR/ferrflow" target/release/ferrflow
+        # Artifact downloads drop the executable bit.
+        chmod +x target/release/ferrflow
+
     - name: Build project
       if: (inputs.type == 'full' || inputs.type == 'all') && inputs.binary-dir == ''
       shell: bash
@@ -210,20 +229,7 @@ runs:
     - name: Add binary to PATH
       if: inputs.type == 'full' || inputs.type == 'all'
       shell: bash
-      env:
-        BINARY_DIR: ${{ inputs.binary-dir }}
-      run: |
-        if [[ -n "$BINARY_DIR" ]]; then
-          dir=$(cd "$BINARY_DIR" && pwd)
-          if [[ ! -x "$dir/ferrflow" ]]; then
-            echo "::error::binary-dir '$BINARY_DIR' has no executable 'ferrflow'"
-            ls -la "$dir" || true
-            exit 1
-          fi
-        else
-          dir="$PWD/target/release"
-        fi
-        echo "$dir" >> "$GITHUB_PATH"
+      run: echo "$PWD/target/release" >> $GITHUB_PATH
 
     - name: Generate benchmark fixtures
       if: inputs.type == 'full' || inputs.type == 'all'
