@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [5.4.0] - 2026-07-15
+
+### Features
+
+- feat(bench): split each cell into startup and work against a floor fixture (#173)
+
 ## [5.3.2] - 2026-07-15
 
 ### Bug Fixes
