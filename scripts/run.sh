@@ -20,6 +20,7 @@ SKIP_COMPETITORS=false
 VERBOSE="${VERBOSE:-false}"
 WARMUP=2
 RUNS=10
+FLOOR_FIXTURE="floor"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -325,7 +326,7 @@ for tool in $TOOLS; do
         # startup overhead instead of the binary's all-cores time.
         par_cmd=""
         if [[ "$tool" == "ferrflow" ]]; then
-          if [[ "$method" == "binary" ]]; then
+          if [[ "$method" == "binary" && "$fixture" != "$FLOOR_FIXTURE" ]]; then
             par_cmd="$full_cmd"
           fi
           full_cmd="$tool_cmd --jobs 1 $cmd"
@@ -344,7 +345,7 @@ for tool in $TOOLS; do
         cache_cmd=""
         if [[ "$tool" == "ferrflow" ]]; then
           prepare_args=(--prepare "rm -rf $tmp_dir/.git/ferrflow-cache")
-          if [[ "$method" == "binary" && "$cmd_name" == "check" ]]; then
+          if [[ "$method" == "binary" && "$cmd_name" == "check" && "$fixture" != "$FLOOR_FIXTURE" ]]; then
             cache_cmd="$full_cmd"
           fi
         fi
@@ -517,6 +518,14 @@ jq -n \
     ferrflow_cached: $ferrflow_cached,
     install_sizes: $install_sizes
   }' > "$RESULTS_DIR/latest.json"
+
+# Split each cell into startup and work against the floor fixture, if this run
+# benchmarked one. No-op when it didn't, so an old fixture set still produces a
+# valid latest.json.
+if [[ -d "$FIXTURES_DIR/$FLOOR_FIXTURE" ]]; then
+  "$SCRIPT_DIR/derive-work.sh" "$RESULTS_DIR/latest.json" "$FLOOR_FIXTURE" "$RESULTS_DIR/latest.derived.json"
+  mv "$RESULTS_DIR/latest.derived.json" "$RESULTS_DIR/latest.json"
+fi
 
 echo "" >&2
 echo "Results saved to $RESULTS_DIR/latest.json" >&2
