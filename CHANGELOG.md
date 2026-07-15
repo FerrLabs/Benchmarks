@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [5.3.0] - 2026-07-15
+
+### Features
+
+- feat(action): support sharding the full benchmark per fixture (#164)
+
 ## [5.2.0] - 2026-07-15
 
 ### Features
