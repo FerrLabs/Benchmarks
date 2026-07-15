@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [5.3.1] - 2026-07-15
+
+### Bug Fixes
+
+- fix(action): look up the full baseline by run id (#167)
+
 ## [5.3.0] - 2026-07-15
 
 ### Features
