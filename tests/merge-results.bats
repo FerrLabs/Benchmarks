@@ -19,6 +19,8 @@ make_partial() {
   "ferrflow_version": "ferrflow 5.29.0",
   "ferrflow_binary_size_mb": "9.0",
   "runner_cores": 4,
+  "warmup": 2,
+  "runs": 30,
   "benchmarks": {$benchmarks},
   "ferrflow_parallel": {$parallel},
   "install_sizes": {$sizes}
@@ -51,6 +53,9 @@ EOF
   [ "$(jq -r '.ferrflow_version' "$TMPDIR/latest.json")" = "ferrflow 5.29.0" ]
   [ "$(jq -r '.ferrflow_binary_size_mb' "$TMPDIR/latest.json")" = "9.0" ]
   [ "$(jq -r '.runner_cores' "$TMPDIR/latest.json")" = "4" ]
+  # The site renders these, so they have to survive the merge.
+  [ "$(jq -r '.warmup' "$TMPDIR/latest.json")" = "2" ]
+  [ "$(jq -r '.runs' "$TMPDIR/latest.json")" = "30" ]
 }
 
 @test "merges ferrflow_parallel and install_sizes too" {
@@ -64,6 +69,25 @@ EOF
 
   [ "$(jq '.ferrflow_parallel | length' "$TMPDIR/latest.json")" -eq 2 ]
   [ "$(jq '.install_sizes | length' "$TMPDIR/latest.json")" -eq 2 ]
+}
+
+@test "merges the warm-cache stat across shards" {
+  cat > "$TMPDIR/partials/a.json" <<'EOF'
+{"benchmarks":{"a-ferrflow-binary-check":{"median_ms":21.0}},
+ "ferrflow_cached":{"a-check":{"median_ms":3.0}}}
+EOF
+  cat > "$TMPDIR/partials/b.json" <<'EOF'
+{"benchmarks":{"b-ferrflow-binary-check":{"median_ms":740.0}},
+ "ferrflow_cached":{"b-check":{"median_ms":5.0}}}
+EOF
+
+  run "$SCRIPT_DIR/merge-results.sh" "$TMPDIR/partials" "$TMPDIR/latest.json"
+  [ "$status" -eq 0 ]
+
+  [ "$(jq '.ferrflow_cached | length' "$TMPDIR/latest.json")" -eq 2 ]
+  [ "$(jq '.ferrflow_cached["b-check"].median_ms == 5' "$TMPDIR/latest.json")" = "true" ]
+  # The cold number stays the headline; the warm one must not leak into it.
+  [ "$(jq '.benchmarks["b-ferrflow-binary-check"].median_ms == 740' "$TMPDIR/latest.json")" = "true" ]
 }
 
 @test "a single shard round-trips unchanged" {

@@ -6,10 +6,11 @@ set -euo pipefail
 # Usage: ./merge-results.sh <partials-dir> <output.json>
 #
 # Each shard benchmarks a distinct fixture, so the `benchmarks`,
-# `ferrflow_parallel` and `install_sizes` maps are keyed by fixture and never
-# collide — merging them is a plain union. Run-level metadata (version, binary
-# sizes, runner_cores) is taken from the first partial: every shard benchmarks
-# the same binary, and shards run on identically-specced runners.
+# `ferrflow_parallel`, `ferrflow_cached` and `install_sizes` maps are keyed by
+# fixture and never collide — merging them is a plain union. Run-level metadata
+# (version, binary sizes, runner_cores, warmup, runs) is taken from the first
+# partial: every shard benchmarks the same binary with the same settings, and
+# shards run on identically-specced runners.
 #
 # Requires: jq
 
@@ -43,6 +44,7 @@ jq -s '
   + {
       benchmarks: (map(.benchmarks // {}) | add),
       ferrflow_parallel: (map(.ferrflow_parallel // {}) | add),
+      ferrflow_cached: (map(.ferrflow_cached // {}) | add),
       install_sizes: (map(.install_sizes // {}) | add)
     }
 ' "${files[@]}" > "$OUTPUT"
