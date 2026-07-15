@@ -275,19 +275,53 @@ runs:
         fi
         bash "$ACTION_PATH/scripts/run.sh" "${ARGS[@]}" | tee benchmarks/results/summary.md
 
-    - name: Download full baseline
+    # download-artifact only sees the *current* run's artifacts, so the baseline
+    # has to be located by run id first — same shape as the micro path above.
+    # hyperfine-baseline is only ever uploaded from main, so the most recent one
+    # is always a main baseline, whether we're on a PR or on main.
+    - name: Find full baseline artifact
       if: (inputs.type == 'full' || inputs.type == 'all') && inputs.shard != 'true'
+      id: find-full-baseline
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.ferrflow-token }}
+        REPO: ${{ github.repository }}
+      run: |
+        RUN_ID=$(gh api "repos/$REPO/actions/artifacts?name=hyperfine-baseline&per_page=1" \
+          --jq '.artifacts[0].workflow_run.id // empty')
+        echo "run_id=${RUN_ID}" >> "$GITHUB_OUTPUT"
+      continue-on-error: true
+
+    # Lands in its own directory, not benchmarks/results: the artifact holds a
+    # file called latest.json and would otherwise overwrite this run's results,
+    # which would then be re-uploaded as the next baseline and freeze the data.
+    - name: Download full baseline
+      if: (inputs.type == 'full' || inputs.type == 'all') && inputs.shard != 'true' && steps.find-full-baseline.outputs.run_id
       uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
       with:
         name: hyperfine-baseline
-        path: benchmarks/results/
+        path: full-baseline/
+        run-id: ${{ steps.find-full-baseline.outputs.run_id }}
+        github-token: ${{ inputs.ferrflow-token }}
       continue-on-error: true
+
+    - name: Stage baseline for comparison
+      if: (inputs.type == 'full' || inputs.type == 'all') && inputs.shard != 'true'
+      shell: bash
+      env:
+        BASELINE_RUN_ID: ${{ steps.find-full-baseline.outputs.run_id }}
+      run: |
+        mkdir -p benchmarks/results
+        if [[ -f full-baseline/latest.json ]]; then
+          cp full-baseline/latest.json benchmarks/results/baseline.json
+          echo "Baseline restored from run ${BASELINE_RUN_ID}"
+        else
+          echo "No baseline artifact available — the regression check will report no-baseline."
+        fi
 
     # Aggregate mode: the shards already benchmarked, so rebuild latest.json
     # from their partials and let the steps below treat it exactly like a
-    # single unsharded run. Runs after the baseline download on purpose — that
-    # artifact carries a file called latest.json and would otherwise land on
-    # top of the merged result.
+    # single unsharded run.
     - name: Merge shard results
       if: (inputs.type == 'full' || inputs.type == 'all') && inputs.merge-partials != ''
       shell: bash
