@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [5.2.0] - 2026-07-15
+
+### Features
+
+- feat(action): add binary-dir input to reuse a prebuilt ferrflow (#161)
+
 ## [5.1.2] - 2026-07-02
 
 ### Bug Fixes
