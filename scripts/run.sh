@@ -126,6 +126,14 @@ prepare_ferrflow_fixture() {
 # that reads as a fix while still leaving HEAD wrong wherever the fixture
 # isn't on that branch.
 #
+# The remote is addressed as a `file://` URL, not a bare path, because
+# semantic-release derives `repositoryUrl` from origin and feeds it to
+# `new URL()` when generating notes. `/tmp/tmp.abc` throws `TypeError:
+# Invalid URL` and the fixture SKIPs; `file:///tmp/tmp.abc` parses, and git
+# clones/fetches from it just the same. (A bare Windows path happens to
+# parse — `C:/x` reads as protocol `c:` — so this reproduces only on Linux,
+# which is exactly how it survived a local check.)
+#
 # Failures here are fatal on purpose. Silencing them is what let this sit
 # unnoticed: every step "succeeded", and the tool just quietly disappeared.
 setup_dummy_remote() {
@@ -140,9 +148,15 @@ setup_dummy_remote() {
     return 1
   }
 
+  local url
+  case "$bare_dir" in
+    /*) url="file://$bare_dir" ;;
+    *) url="file:///$bare_dir" ;;
+  esac
+
   git -C "$bare_dir" init --bare -q
-  git -C "$dir" remote add origin "$bare_dir" 2>/dev/null || \
-    git -C "$dir" remote set-url origin "$bare_dir"
+  git -C "$dir" remote add origin "$url" 2>/dev/null || \
+    git -C "$dir" remote set-url origin "$url"
   git -C "$dir" push -q origin "HEAD:refs/heads/$branch"
   git -C "$dir" push -q origin --tags
   git -C "$bare_dir" symbolic-ref HEAD "refs/heads/$branch"
