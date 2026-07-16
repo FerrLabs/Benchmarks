@@ -300,6 +300,7 @@ for tool in $TOOLS; do
         # changesets needs resolved node_modules to find workspaces
         if [[ "$tool" == "changesets" && -f "$tmp_dir/package.json" ]]; then
           (cd "$tmp_dir" && npm install --ignore-scripts --no-audit --no-fund &>/dev/null) || true
+          "$SCRIPT_DIR/seed-changesets.sh" "$tmp_dir" || true
         fi
       fi
 
