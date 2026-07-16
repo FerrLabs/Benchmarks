@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [5.5.1] - 2026-07-16
+
+### Bug Fixes
+
+- fix(bench): address the dummy remote as a file:// URL (#181)
+
 ## [5.5.0] - 2026-07-16
 
 ### Features
