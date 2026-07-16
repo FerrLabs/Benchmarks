@@ -116,19 +116,36 @@ prepare_ferrflow_fixture() {
 # Set up a dummy bare remote for tools that require one (semantic-release, etc.)
 #
 # semantic-release does `git fetch --tags origin` very early in its
-# planning phase. If the remote has no tags it exits 128 and we report
-# SKIP for the whole fixture, which is how it ended up missing from the
-# perf comparison table. Push HEAD AND tags so any fixture-defined
-# baseline tag (e.g. "v1.0.0") is visible to the tool.
+# planning phase, and that fetch resolves the remote's HEAD. `git init
+# --bare` points HEAD at refs/heads/<init.defaultBranch> — `master` on a
+# stock runner — while the fixtures are on `main`, so HEAD dangles and the
+# fetch dies with `fatal: couldn't find remote ref HEAD` (exit 128). The
+# tool then SKIPs every fixture and vanishes from the comparison entirely.
+#
+# Point HEAD at the branch we actually pushed. Don't pass `-b` to init:
+# that reads as a fix while still leaving HEAD wrong wherever the fixture
+# isn't on that branch.
+#
+# Failures here are fatal on purpose. Silencing them is what let this sit
+# unnoticed: every step "succeeded", and the tool just quietly disappeared.
 setup_dummy_remote() {
   local dir="$1"
   local bare_dir="$2"
 
   [[ -d "$dir/.git" ]] || return 0
-  git -C "$bare_dir" init --bare -q 2>/dev/null
-  git -C "$dir" remote add origin "$bare_dir" 2>/dev/null || true
-  git -C "$dir" push -q origin HEAD 2>/dev/null || true
-  git -C "$dir" push -q origin --tags 2>/dev/null || true
+
+  local branch
+  branch=$(git -C "$dir" symbolic-ref --quiet --short HEAD) || {
+    echo "  setup_dummy_remote: fixture $dir has a detached HEAD" >&2
+    return 1
+  }
+
+  git -C "$bare_dir" init --bare -q
+  git -C "$dir" remote add origin "$bare_dir" 2>/dev/null || \
+    git -C "$dir" remote set-url origin "$bare_dir"
+  git -C "$dir" push -q origin "HEAD:refs/heads/$branch"
+  git -C "$dir" push -q origin --tags
+  git -C "$bare_dir" symbolic-ref HEAD "refs/heads/$branch"
 }
 
 # Measure peak RSS in MB (Linux only)
