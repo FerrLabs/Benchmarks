@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [5.4.1] - 2026-07-16
+
+### Bug Fixes
+
+- fix(bench): point the dummy remote's HEAD at the branch we push (#178)
+
 ## [5.4.0] - 2026-07-15
 
 ### Features
