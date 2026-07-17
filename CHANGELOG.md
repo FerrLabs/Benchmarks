@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [5.6.0] - 2026-07-17
+
+### Features
+
+- feat(ci): dispatch Renovate when the rebase box is ticked (#175)
+
 ## [5.5.1] - 2026-07-16
 
 ### Bug Fixes
