@@ -46,6 +46,15 @@ fi
 
 RAW_DIR="$RESULTS_DIR/raw"
 
+# The benchmark measures the tools' work, not the network. ferrflow's
+# telemetry blocks process exit on HTTPS POSTs when enabled (one event per
+# bumped package), which added ~550 ms of pure wait to every timed run on the
+# `complex` fixture — 87% of the published number — while fixtures whose
+# config omits the `workspace` object dodged it entirely through a default
+# quirk. DO_NOT_TRACK also covers competitors that honour the convention.
+export FERRFLOW_TELEMETRY=0
+export DO_NOT_TRACK=1
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
