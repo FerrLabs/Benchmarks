@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [5.6.1] - 2026-07-17
+
+### Bug Fixes
+
+- fix(bench): disable telemetry so runs measure work, not network waits (#184)
+
 ## [5.6.0] - 2026-07-17
 
 ### Features
