@@ -348,10 +348,15 @@ for tool in $TOOLS; do
       readarray -t cmds < <(jq -r --arg t "$tool" '.[$t].commands[]' "$TOOLS_JSON")
 
       for cmd in "${cmds[@]}"; do
-        # For tools with empty command (semantic-release, changesets), the full command is in tool_cmd
+        # Empty command means the tool's single dry-run planning invocation lives
+        # entirely in tool_cmd (semantic-release --dry-run, standard-version
+        # --dry-run, commit-and-tag-version --dry-run, changesets status). Bucket
+        # it under the same name as ferrflow's `release --dry-run` so the head-to-head
+        # compares the same operation (compute next version + notes, write nothing)
+        # for every tool, not ferrflow's lighter `check` against their full dry-run.
         if [[ -z "$cmd" ]]; then
           full_cmd="$tool_cmd"
-          cmd_name="check"
+          cmd_name="release-dry-run"
         else
           full_cmd="$tool_cmd $cmd"
           cmd_name=$(echo "$cmd" | tr ' ' '-' | tr -d '-')
