@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [5.6.2] - 2026-07-20
+
+### Bug Fixes
+
+- fix(bench): bucket competitors under release-dry-run for a like-for-like head-to-head (#188)
+
 ## [5.6.1] - 2026-07-17
 
 ### Bug Fixes
