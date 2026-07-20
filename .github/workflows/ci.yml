@@ -56,7 +56,7 @@ jobs:
       - name: Record previous tag
         id: prev-tag
         run: echo "tag=$(git describe --tags --abbrev=0 2>/dev/null || echo '')" >> "$GITHUB_OUTPUT"
-      - uses: FerrLabs/FerrFlow@ce419aeddfcc21884391320fee45a715161e6624 # v5
+      - uses: FerrLabs/FerrFlow@755d44bc01c8f47ee8602df7b69c68b72271a71d # v5
         with:
           bot: true
           dry_run: ${{ inputs.dry_run }}
@@ -80,7 +80,7 @@ jobs:
         with:
           repository: FerrLabs/FerrFlow
           path: ferrflow-src
-      - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae # nightly
+      - uses: dtolnay/rust-toolchain@4fd1da8b0805d2d2e936788875a7d65dbd677dc2 # nightly
       - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
         with:
           workspaces: ferrflow-src
