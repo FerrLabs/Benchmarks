@@ -56,7 +56,7 @@ jobs:
       - name: Record previous tag
         id: prev-tag
         run: echo "tag=$(git describe --tags --abbrev=0 2>/dev/null || echo '')" >> "$GITHUB_OUTPUT"
-      - uses: FerrLabs/FerrFlow@8825c0a43bfd1632692194dcaacdb19fc5b2ed0c # v5
+      - uses: FerrLabs/FerrFlow@a7fe005b84dbde9d116e9ddd6f273086b9728346 # v7
         with:
           bot: true
           dry_run: ${{ inputs.dry_run }}
