@@ -157,3 +157,15 @@ EOF
   [ "$status" -eq 1 ]
   [[ "$output" == *"Usage"* ]]
 }
+
+@test "ignores npm and docker ferrflow regressions" {
+  make_json "$TMPDIR/baseline.json" \
+    '"single-ferrflow-npm-check": {"median_ms": 100.0, "stddev_ms": 1.0, "memory_mb": "N/A"}, "single-ferrflow-docker-check": {"median_ms": 100.0, "stddev_ms": 1.0, "memory_mb": "N/A"}'
+  make_json "$TMPDIR/latest.json" \
+    '"single-ferrflow-npm-check": {"median_ms": 300.0, "stddev_ms": 1.0, "memory_mb": "N/A"}, "single-ferrflow-docker-check": {"median_ms": 300.0, "stddev_ms": 1.0, "memory_mb": "N/A"}'
+
+  run bash "$SCRIPT_DIR/compare.sh" "$TMPDIR/baseline.json" "$TMPDIR/latest.json"
+  [ "$status" -eq 0 ]
+  [[ "$output" != *"single-ferrflow-npm-check"* ]]
+  [[ "$output" == *"All benchmarks within thresholds"* ]]
+}

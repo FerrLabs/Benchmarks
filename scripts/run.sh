@@ -186,22 +186,14 @@ measure_memory() {
   fi
 }
 
-get_npm_binary_size() {
-  local pkg="$1"
-  local tmp_dir bin
-  tmp_dir=$(mktemp -d)
-  (
-    cd "$tmp_dir"
-    npm init -y &>/dev/null
-    npm install --save "$pkg" &>/dev/null 2>&1
-  )
-  bin=$(find "$tmp_dir/node_modules" -type f -path "*/@$pkg/*/bin/$pkg" 2>/dev/null | head -1)
+get_binary_size() {
+  local bin
+  bin=$(command -v "$1" 2>/dev/null || true)
   if [[ -n "$bin" && -f "$bin" ]]; then
-    du -m "$bin" | awk '{printf "%.1f", $1}'
+    stat -c %s "$bin" | awk '{printf "%.1f", $1/1048576}'
   else
     echo "N/A"
   fi
-  rm -rf "$tmp_dir"
 }
 
 # Get npm package install size in MB
@@ -306,7 +298,7 @@ for tool in $TOOLS; do
       echo "$npm_size" > "$RAW_DIR/${tool}-npm-size.txt"
     fi
     if [[ "$method" == "binary" && "$tool" == "ferrflow" ]]; then
-      bin_size=$(get_npm_binary_size ferrflow)
+      bin_size=$(get_binary_size "$local_bin")
       echo "$bin_size" > "$RAW_DIR/ferrflow-binary-size.txt"
     fi
 
