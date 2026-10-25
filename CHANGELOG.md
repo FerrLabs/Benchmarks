@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [5.6.4] - 2026-10-25
+
+### Bug Fixes
+
+- fix(action): pick baseline artifact from main and skip expired ones (#288)
+
 ## [5.6.3] - 2026-07-23
 
 ### Bug Fixes
