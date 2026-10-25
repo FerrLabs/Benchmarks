@@ -190,7 +190,7 @@ get_binary_size() {
   local bin
   bin=$(command -v "$1" 2>/dev/null || true)
   if [[ -n "$bin" && -f "$bin" ]]; then
-    stat -c %s "$bin" | awk '{printf "%.1f", $1/1048576}'
+    stat -L -c %s "$bin" | awk '{printf "%.1f", $1/1048576}'
   else
     echo "N/A"
   fi
