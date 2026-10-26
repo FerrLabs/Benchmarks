@@ -4,6 +4,12 @@ All notable changes to `benchmarks` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [5.6.5] - 2026-10-26
+
+### Bug Fixes
+
+- fix(compare): gate regressions on the binary under test (#287)
+
 ## [5.6.4] - 2026-10-25
 
 ### Bug Fixes
