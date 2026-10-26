@@ -56,7 +56,7 @@ jobs:
       - name: Record previous tag
         id: prev-tag
         run: echo "tag=$(git describe --tags --abbrev=0 2>/dev/null || echo '')" >> "$GITHUB_OUTPUT"
-      - uses: FerrLabs/FerrFlow@544e865a6398387633e3f991e6138e59416b726d # v7
+      - uses: FerrLabs/FerrFlow@dd191099c07f9b3374e92ed588310c020e55cdb6 # v7
         with:
           bot: true
           dry_run: ${{ inputs.dry_run }}
@@ -95,7 +95,7 @@ jobs:
       - name: Add ferrflow to PATH
         run: echo "${{ github.workspace }}/ferrflow-src/target/release" >> "$GITHUB_PATH"
       - name: Generate benchmark fixtures
-        uses: FerrLabs/Fixtures@7b04ba1b93ababf2b557ca4521a243c23217ef0a # v1.2.2
+        uses: FerrLabs/Fixtures@05adbf91396ffb3f05ceda4cdf3ad6755292fc37 # v1.4.1
         with:
           definitions: ferrflow-src/benchmarks/fixtures/definitions
           generated-dir: /tmp/bench-fixtures
