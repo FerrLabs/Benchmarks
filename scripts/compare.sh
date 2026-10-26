@@ -71,8 +71,8 @@ echo "Benchmark regression check"
 echo "=========================="
 echo ""
 
-# Relative checks (ferrflow benchmarks only)
-for key in $(jq -r '.benchmarks | keys[]' "$LATEST" | grep '\-ferrflow-'); do
+# Relative checks (ferrflow binary under test only)
+for key in $(jq -r '.benchmarks | keys[]' "$LATEST" | grep -- '-ferrflow-binary-'); do
   new_median=$(jq -r ".benchmarks[\"$key\"].median_ms" "$LATEST")
   old_median=$(jq -r ".benchmarks[\"$key\"].median_ms // empty" "$BASELINE" 2>/dev/null || echo "")
 
