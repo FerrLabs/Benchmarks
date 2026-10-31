@@ -1,12 +1,13 @@
 <div align="center">
 
-# FerrFlow Benchmarks
+<h1><img src=".github/logo.svg" alt="" width="48" height="48" align="absmiddle"> FerrFlow Benchmarks</h1>
 
 **Reusable GitHub Action for FerrFlow performance benchmarks.**
 
 Runs the micro and full suites, compares against competing release tools,<br />
 and fails the PR when a regression crosses the threshold.
 
+[![Latest release](https://img.shields.io/github/v/release/FerrLabs/Benchmarks)](https://github.com/FerrLabs/Benchmarks/releases/latest)
 [![CI](https://github.com/FerrLabs/Benchmarks/actions/workflows/ci.yml/badge.svg)](https://github.com/FerrLabs/Benchmarks/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/FerrLabs/Benchmarks)](LICENSE)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/FerrLabs/Benchmarks/badge)](https://scorecard.dev/viewer/?uri=github.com/FerrLabs/Benchmarks)
@@ -18,9 +19,10 @@ and fails the PR when a regression crosses the threshold.
 ## Usage
 
 ```yaml
-- uses: FerrLabs/Benchmarks@v2
+- uses: FerrLabs/Benchmarks@v5
   with:
     type: micro        # micro, full, or all
+    definitions: benchmarks/fixtures/definitions
     ferrflow-token: ${{ secrets.FERRFLOW_TOKEN }}
 ```
 
@@ -81,7 +83,7 @@ Runs criterion benchmarks (`cargo bench`) and compares against a stored baseline
 
 ### Full (`full`)
 
-Runs end-to-end benchmarks with [hyperfine](https://github.com/sharkdp/hyperfine) across multiple fixture sizes (single repo, mono-small, mono-medium, mono-large). Optionally compares against competitor tools (semantic-release, changesets, release-please).
+Runs end-to-end benchmarks with [hyperfine](https://github.com/sharkdp/hyperfine) across multiple fixture sizes (single repo, mono-small, mono-medium, mono-large). Optionally compares against competitor tools (semantic-release, changesets, standard-version, commit-and-tag-version). release-please is measured for install size only.
 
 - Generates fixtures via the [`FerrLabs/Fixtures`](https://github.com/FerrLabs/Fixtures) action from the JSON `definitions` directory you pass
 - Measures execution time, memory usage, and binary size
